@@ -1,0 +1,173 @@
+
+
+<template name="scorePage">
+	<script type="text/javascript">
+		//used to tie everything together
+
+		var renderer = PIXI.autoDetectRenderer(800, 600,{backgroundColor : 0x1099bb, antialiasing: false, transparent: false, resolution: 1});
+		document.body.appendChild(renderer.view);
+
+		// create the root of the scene graph
+		var stage = new PIXI.Container();
+
+		// create a texture from an image path
+		var trebletex = PIXI.Texture.fromImage('treble.png');
+		var basstex = PIXI.Texture.fromImage('bass.png');
+		var fourtex = PIXI.Texture.fromImage('four.png');
+
+		//create Sprites
+		var trebleClef = new PIXI.Sprite(trebletex);
+		var bassClef = new PIXI.Sprite(basstex);
+		var fourSig = new PIXI.Sprite(fourtex);
+
+		/*load textures
+		PIXI.loader
+	  .add([
+	    "treble.png",
+	    "bass.png",
+	    "four.png"
+	  ])
+	  .load(buildClef); */
+
+		var graphics = new PIXI.Graphics();
+
+		//sets starting point of the staff
+		var ytop = 30;
+		var xmargin = 50;
+		var xstarting = xmargin;
+		var measureLength = 150;
+		var ystaff = ytop + (4*lineSpace + 5*lineWidth);
+
+		var lineWidth = 1;
+		var lineSpace = 20;
+		graphics.lineStyle(lineWidth, 00000000);
+		graphics.moveTo(xstarting, ytop);
+
+
+		//draw keysig, timesig, and cluf
+		var drawTrebleClef = function() {
+			//trebleClef.anchor.x = 0.5;
+			//trebleClef.anchor.y = 0.5;
+
+			trebleClef.position.x = xmargin;
+			trebleClef.position.y = ytop;
+
+			trebleClef.height = 85;
+			trebleClef.width = 40;
+
+			stage.addChild(trebleClef)
+		}
+
+		var drawBassClef = function() {
+
+		}
+
+		var drawKeySig = function() {
+			
+		}
+
+		var drawTimeSig = function() {
+
+		}
+
+		var drawStaffHead = function() {
+			drawTrebleClef();
+		}
+/*
+		var drawRests = function() {
+		  // Align the rest symbol to the right
+      //canvas.translate(getWidth() - getMinWidth(), 0);
+      //canvas.translate(SheetMusic.NoteHeight/2, 0);
+      graphics.moveTo()
+
+
+      if (duration == NoteDuration.Whole) {
+          DrawWhole(canvas, paint, ytop);
+      }
+      else if (duration == NoteDuration.Half) {
+          DrawHalf(canvas, paint, ytop);
+      }
+      else if (duration == NoteDuration.Quarter) {
+          DrawQuarter(canvas, paint, ytop);
+      }
+      else if (duration == NoteDuration.Eighth) {
+          DrawEighth(canvas, paint, ytop);
+      }
+      canvas.translate(-SheetMusic.NoteHeight/2, 0);
+      canvas.translate(-(getWidth() - getMinWidth()), 0);
+		}
+*/
+		function Measure(height, width, ) {
+			height = ystaff;
+			width = getMinWidth();
+		}
+
+		
+
+		var measure1 = new Measure();
+
+
+		var drawWholeRest = function() {
+        int y = ytop + SheetMusic.NoteHeight;
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0, y, SheetMusic.NoteWidth, y + SheetMusic.NoteHeight/2, paint);
+        paint.setStyle(Paint.Style.STROKE);
+    }
+
+		//draw horizontal lines of staff function
+		var drawHorzStaff = function() {
+			var line = 1;
+	    var y = ytop;
+	    graphics.moveTo(xstarting, ytop)
+	    for (line = 1; line &lt;= 5; line++) {
+	      graphics.lineTo(xstarting + measureLength, y);
+	      y += lineWidth + lineSpace;
+	      graphics.moveTo(xstarting, y);
+	    }
+	    xstarting += measureLength;
+	  }
+    
+    //draw vertical staff lines
+	  var drawVertStaff = function() {
+	    graphics.moveTo(xstarting, ytop);
+	    graphics.lineTo(xstarting, ystaff);
+	  }
+
+	  var drawMeasures = function(numberOfMeasures) {
+	  	var measureIterations = 1;
+	  	for(measureIterations = 1; measureIterations &lt;= numberOfMeasures;measureIterations++) {
+	  		drawHorzStaff();
+	  		drawVertStaff();
+	  	}
+	  }
+
+	  drawMeasures(4);
+	  drawStaffHead();
+
+    /*
+			render staff function: will call draw horz followed by draw vert for x # of iterators equal to # of measures
+    */
+
+		//adds staff to stage
+		stage.addChild(graphics)
+
+		// start animating
+		animate();
+		function animate() {
+		    requestAnimationFrame(animate);
+
+
+
+		    // render the container
+		    renderer.render(stage);
+		}
+	</script>
+
+	<body>
+
+		
+	</body>
+
+
+
+</template>
