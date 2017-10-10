@@ -1,2 +1,2 @@
 
-//used to play-back midi files
+// accepts data from the MidiReader and outputs audio
