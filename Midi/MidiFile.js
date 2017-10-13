@@ -2,8 +2,8 @@
 // represents a MIDI Header chunk
 class HeaderChunk {
   constructor(format, numberOfTracks, deltaTime) {
-    this.type = "4d546864";
-    this.length = "00000006";
+    this.type = 0x4d546864;
+    this.length = 0x00000006;
 
     this.tracks = numberOfTracks;
     this.format = format;
@@ -14,8 +14,16 @@ class HeaderChunk {
 // represents a MIDI Track chunk
 class TrackChunk {
   constructor(length, events) {
-    this.type = "4d54726b"
+    this.type = 0x4d54726b;
     this.events = []; // represents
+  }
+}
+
+// class representing a <deltaTimne>-<event> pair (e.g. MidiTracks contains many TrackEvents)
+class TrackEvent {
+  constructor(deltaTime, event) {
+    this.deltaTime = deltaTime;
+    this.event = event;
   }
 }
 
@@ -34,5 +42,5 @@ class MidiFile {
 module.exports = {
   MidiFile: MidiFile,
   HeaderChunk: HeaderChunk,
-  TrackChunk: TrackChunk
+  TrackChunk: TrackChunk,
 }
