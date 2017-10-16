@@ -46,24 +46,25 @@ console.log(channelRegex.test(meta)); // should be 'false'
 
 
 
-// WORKING
+// used to parse a MIDI header chunk, WORKING
 function parseHeader(header) {
   var length = header.slice(8, 16);
   var format = header.slice(16, 20);
   var tracks = header.slice(20, 24);
   var division = header.slice(24, 28);
 
-  console.log('#### HEADER ####');
+  /*console.log('#### HEADER ####');
   console.log(header);
   console.log(length);
   console.log(format);
   console.log(tracks);
-  console.log(division);
+  console.log(division);*/
 
   var mfh = new midiFileModule.HeaderChunk(format, tracks, division);
   return mfh;
 }
 
+// used to extract a 'variable-length quantity' from a stream of bytes in hexadecimal, NOT WORKING (does not extend past 1 byte)
 function getDeltaTime(chunk) {
   var offset = 0;
   var vlv = 0x00;
@@ -83,17 +84,59 @@ function getDeltaTime(chunk) {
   return hex;
 }
 
+// used to extract the 'event' chunk that follows the 'delta-time' declaration in the track chunk
 function getEvent(chunk) {
-  if(eventCode === 'FF') {
-    // handle meta event
-    var metaCode = eventChunk.slice(0 + offset, 2 + offset);
-    var metaLength =
-  } else if(eventCode === 'F0' || eventCode === 'F7') {
-    // handle sysex event
-  } else if(channelRegex.test(eventCode)) {
-    // handle midi event
+  var chunkLength = chunk.length;
+  var eventCode = chunk.slice(0, 2);
+  chunk = chunk.slice(2, chunkLength);
+  chunkLength = chunk.length;
+  //console.log('eventCode', eventCode);
+
+  if(eventCode === 'ff') {  // handle meta event
+    var metaCode = chunk.slice(0, 2);
+    //console.log('metaCode', metaCode);
+
+    chunk = chunk.slice(2, chunkLength);
+    chunkLength = chunk.length;
+
+    var metaVlv = getDeltaTime(chunk);
+    var vlvLength = metaVlv.length;
+    //console.log('metaVLV', metaVlv);
+    var metaHex = parseInt(metaVlv, 16);
+    //console.log('metaHex', metaHex);
+
+    chunk = chunk.slice(vlvLength, chunkLength);
+    chunkLength = chunk.length;
+
+    var eventData = chunk.slice(0, 2*metaHex);
+    //console.log('eventData', eventData);
+    return eventCode + metaCode + metaVlv + eventData;
+
+  } else if(eventCode === 'f0' || eventCode === 'f7') { // handle sysex event
+    var sysVlv = getDeltaTime(chunk);
+    var vlvLength = sysVlv.length;
+    var sysHex = parseInt(sysVlv, 16);
+
+    chunk = chunk.slice(vlvLength, chunkLength);
+    chunkLength = chunk.length;
+
+    var eventData = chunk.slice(0, 2*sysHex);
+    return eventCode + sysVlv + eventData;
+
+  } else if(channelRegex.test(eventCode)) { // handle midi event
+    var midiCode = eventCode.slice(0, 1);
+    var channel = eventCode.slice(1, 2);
+
+    if(midiCode === '' || midiCode === '') {
+      var dataBytes = chunk.slice(0, 2);
+      return eventCode + dataBytes;
+    } else {
+      var dataBytes = chunk.slice(0, 4);
+      return eventCode + dataBytes;
+    }
   } else {
-    continue;
+    console.log('#### UNABLE TO PARSE ####');
+    return;
   }
 }
 
@@ -101,11 +144,12 @@ function getDeltaTimeEventPairs(eventChunk) {
   dtePairs = [];
 
   while(eventChunk.length > 0) {
+    console.log('\n ### NEW ITERATION ### \n')
     var chunkLength = eventChunk.length;
 
     var vlv = getDeltaTime(eventChunk);
     var vlvLength = vlv.length;
-    console.log('vlvlength', vlvLength);
+    console.log('vlv', vlv);
 
     eventChunk = eventChunk.slice(0 + vlvLength, chunkLength);
     console.log('eventChunk', eventChunk);
@@ -113,18 +157,18 @@ function getDeltaTimeEventPairs(eventChunk) {
     chunkLength = eventChunk.length;
 
     var ev = getEvent(eventChunk);
+    console.log('parsedEvent', ev)
     var evLength = ev.length;
     console.log('eventlength', evLength);
 
     eventChunk = eventChunk.slice(0 + evLength, chunkLength);
+    chunkLength = eventChunk.length;
 
     dtePairs.push({
       'deltaTime' : vlv,
       'event' : ev,
     });
   }
-
-
   return dtePairs;
 }
 
