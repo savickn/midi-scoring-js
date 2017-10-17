@@ -12,10 +12,10 @@ class MidiEvent {
 * velocity is the 'attack' between 0-127
 */
 class NoteOn extends MidiEvent {
-  constructor(channel, note, velocity) {
+  constructor(channel, data) {
     super('9', channel);
-    this.note = note;
-    this.velocity = velocity;
+    this.note = data.slice(0, 2);
+    this.velocity = data.slice(2, 4);
   }
 }
 
@@ -27,8 +27,8 @@ class NoteOn extends MidiEvent {
 class NoteOff extends MidiEvent {
   constructor(channel, note, velocity) {
     super('8', channel);
-    this.note = note;
-    this.velocity = velocity;
+    this.note = data.slice(0, 2);
+    this.velocity = data.slice(2, 4);
   }
 }
 
@@ -38,10 +38,10 @@ class NoteOff extends MidiEvent {
 * pressure is amount of 'aftertouch' between 0-127
 */
 class PolyphonicPressure extends MidiEvent {
-  constructor(channel, note, pressure) {
+  constructor(channel, data) {
     super('A', channel);
-    this.note = note;
-    this.pressure = pressure;
+    this.note = data.slice(0, 2);
+    this.pressure = data.slice(2, 4);
   }
 }
 
@@ -51,10 +51,10 @@ class PolyphonicPressure extends MidiEvent {
 * ctrlValue is the new value for the 'ctrl envelope' between 0-127
 */
 class ControllerChange extends MidiEvent {
-  constructor(channel, ctrl, ctrlValue) {
+  constructor(channel, data) {
     super('B', channel);
-    this.ctrl = ctrl;
-    this.ctrlValue = ctrlValue;
+    this.ctrl = data.slice(0, 2);
+    this.ctrlValue = data.slice(2, 4);
   }
 }
 
@@ -63,9 +63,9 @@ class ControllerChange extends MidiEvent {
 * program is the instrument between 0-127 (e.g. )
 */
 class ProgramChange extends MidiEvent {
-  constructor(channel, program) {
+  constructor(channel, data) {
     super('C', channel);
-    this.program = program;
+    this.program = data.slice(0, 2);
   }
 }
 
@@ -74,9 +74,10 @@ class ProgramChange extends MidiEvent {
 * program is the instrument between 0-127 (e.g. )
 */
 class PitchBend extends MidiEvent {
-  constructor(channel, program) {
+  constructor(channel, data) {
     super('E', channel);
-    this.program = program;
+    this.lsb = data.slice(0, 2);
+    this.msb = data.slice(2, 4);
   }
 }
 
@@ -86,8 +87,11 @@ class PitchBend extends MidiEvent {
 class AllSoundOff extends MidiEvent {
   constructor(channel) {
     super('B', channel);
-    this.data1 = 0x78;
-    this.data2 = 0x00;
+    this.data = ['78', '00']; // 0x78 and 0x00
+  }
+
+  toHex() {
+    return this.statusByte + this.data.join('');
   }
 }
 
@@ -97,12 +101,11 @@ class AllSoundOff extends MidiEvent {
 class ResetAllControllers extends MidiEvent {
   constructor(channel) {
     super('B', channel);
-    this.data1 = 0x79;
-    this.data2 = 0x00;
+    this.data = ['79', '00']; // 0x78 and 0x00
   }
 
   toHex() {
-
+    return this.statusByte + this.data.join('');
   }
 }
 
@@ -129,34 +132,23 @@ class MonoModeOn extends MidiEvent {
 }
 
 // used to retrieve MIDI Events in real-time
-class MidiEventFactory {
-  constructor() {}
-
-  getNoteOn(channel, note, velocity) {
-    return new NoteOn(channel, note, velocity);
+function getMidiEvent(code, channel, data='') {
+  switch(code) {
+    case '8': //0x8n:
+      return new NoteOff(channel, data);
+      break;
+    case '9': //0x9n:
+      return new NoteOn(channel, data);
+      break;
+    case 'B': //0xBn:
+      return new ControllerChange(channel, data);
+      break;
+    default:
+      break;
   }
-
-  getNoteOff(channel, note, velocity) {
-    return new NoteOff(channel, note, velocity);
-  }
-
-  getControllerChange(channel, ctrl, ctrlValue) {
-    return new ControllerChange(channel, ctrl, ctrlValue);
-  }
-
 }
 
-
-// each MidiController Message has a 'code' (e.g. 0x01, and a value between 0-127, e.g. 01111111)
-class ControllerMessage {
-    constructor(code, value) {
-      this.code = code;
-      this.value = value;
-    }
-}
-
-//export MidiEventFactory, TrackEvent;
-
+//export MidiEventFactory;
 module.exports = {
-  MidiEventFactory: MidiEventFactory
+  GetMidiEvent: getMidiEvent,
 };

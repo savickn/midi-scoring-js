@@ -3,9 +3,9 @@
 
 const fs = require('fs');
 
-const midiEventModule = require('./MidiEvent.js');
-const metaEventModule = require('./MetaEvent.js');
-const systemEventModule = require('./SysexEvent.js');
+const MidiEventModule = require('./MidiEvent.js');
+const MetaEventModule = require('./MetaEvent.js');
+const SystemEventModule = require('./SysexEvent.js');
 const midiFileModule = require('./MidiFile.js');
 
 const headerId = '4d546864';
@@ -64,27 +64,18 @@ function parseHeader(header) {
   return mfh;
 }
 
-// used to extract a 'variable-length quantity' from a stream of bytes in hexadecimal, NOT WORKING (does not extend past 1 byte)
+// used to extract a 'variable-length quantity' from a stream of bytes in hexadecimal, WORKING
 function getDeltaTime(chunk) {
   var offset = 0;
-  var vlv = 0x00;
-  console.log('initialVLV', vlv);
-
   do {
-    significantByte = parseInt('0x' + chunk.slice(0 + offset, 2 + offset));
-    console.log('sigByte', significantByte);
-    vlv += significantByte;
-    console.log('updatedVLV', vlv);
+    significantByte = parseInt(chunk.slice(offset, 2 + offset), 16);
+    //console.log('sigByte', significantByte);
     offset += 2;
   } while(significantByte > vlvMidpoint);
-  var hex = vlv.toString(16);
-  if(hex.length % 2 === 1) {
-    hex = '0' + hex;
-  }
-  return hex;
+  return chunk.slice(0, offset);
 }
 
-// used to extract the 'event' chunk that follows the 'delta-time' declaration in the track chunk
+// used to extract the 'event' chunk that follows the 'delta-time' declaration in the track chunk, WORKING
 function getEvent(chunk) {
   var chunkLength = chunk.length;
   var eventCode = chunk.slice(0, 2);
@@ -110,6 +101,8 @@ function getEvent(chunk) {
 
     var eventData = chunk.slice(0, 2*metaHex);
     //console.log('eventData', eventData);
+    //var metaEvent = MetaEventModule.GetMetaEvent(metaCode, eventData);
+    //return metaEvent;
     return eventCode + metaCode + metaVlv + eventData;
 
   } else if(eventCode === 'f0' || eventCode === 'f7') { // handle sysex event
@@ -140,9 +133,9 @@ function getEvent(chunk) {
   }
 }
 
+// used to split a 'track' chunk into 'deltaTime-event' pairs
 function getDeltaTimeEventPairs(eventChunk) {
   dtePairs = [];
-
   while(eventChunk.length > 0) {
     console.log('\n ### NEW ITERATION ### \n')
     var chunkLength = eventChunk.length;
@@ -152,75 +145,87 @@ function getDeltaTimeEventPairs(eventChunk) {
     console.log('vlv', vlv);
 
     eventChunk = eventChunk.slice(0 + vlvLength, chunkLength);
-    console.log('eventChunk', eventChunk);
-
     chunkLength = eventChunk.length;
+    //console.log('eventChunk', eventChunk);
 
     var ev = getEvent(eventChunk);
     console.log('parsedEvent', ev)
+    if(ev === null) {
+      continue; //used to skip sections that are not supported midi events, PROB NOT WORKING PERFECTLY
+    }
     var evLength = ev.length;
     console.log('eventlength', evLength);
 
     eventChunk = eventChunk.slice(0 + evLength, chunkLength);
     chunkLength = eventChunk.length;
 
-    dtePairs.push({
-      'deltaTime' : vlv,
-      'event' : ev,
-    });
+    var trackEvent = new midiFileModule.TrackEvent(vlv, ev);
+    dtePairs.push(trackEvent);
   }
   return dtePairs;
 }
 
+// used to parse a single midi 'track' chunk
 function parseTrack(track) {
-  var length = track.slice(8, 16);
-  var eventChunk = track.slice(16, track.length - 1);
+  var trackLength = track.slice(8, 16);
+  var eventChunk = track.slice(16, track.length);
 
   console.log('#### TRACK ####');
   console.log(track);
-  console.log(length);
+  console.log(trackLength);
   console.log(eventChunk);
 
   var dtePairs = getDeltaTimeEventPairs(eventChunk);
-
-
+  var track = new midiFileModule.TrackChunk(trackLength, dtePairs);
+  return track;
 }
 
-fs.readFile('ableton.mid', 'hex', (err, data) => {
-  if(err) console.log('error', err);
-  console.log('data', data);
-  console.log('dataLength', data.length);
+// used to parse/convert '.mid' file to MidiFile object, WORKING
+function readMidi(filename, cb) {
+  fs.readFile(filename, 'hex', (err, data) => {
+    if(err) console.log('error', err);
+    console.log('data', data);
+    console.log('dataLength', data.length);
 
-  var headerIdx = data.indexOf(headerId);
-  var track1Idx = data.indexOf(trackId);
-  var trackSize = data.slice(track1Idx + 8, track1Idx + 16);
-  var bytes = parseInt(trackSize, 16);
+    var headerIdx = data.indexOf(headerId);
+    var track1Idx = data.indexOf(trackId);
+    var trackSize = data.slice(track1Idx + 8, track1Idx + 16);
+    var bytes = parseInt(trackSize, 16);
 
-  var header = data.slice(headerIdx, track1Idx);
-  var track1 = data.slice(track1Idx, track1Idx + 16 + bytes * 2);
+    var header = data.slice(headerIdx, track1Idx);
+    var track1 = data.slice(track1Idx, track1Idx + 16 + bytes * 2);
 
-  console.log('headerIdx', headerIdx);
-  console.log('track1Idx', track1Idx);
+    console.log('headerIdx', headerIdx);
+    console.log('track1Idx', track1Idx);
 
-  console.log('header', header);
-  console.log('headerLength', header.length);
+    console.log('header', header);
+    console.log('headerLength', header.length);
 
-  console.log('track1', track1);
-  console.log('track1Length', track1.length);
+    console.log('track1', track1);
+    console.log('track1Length', track1.length);
 
-  var headerObj = parseHeader(header);
-  var trackObj = parseTrack(track1);
+    var headerObj = parseHeader(header);
+    var trackObj = parseTrack(track1);
 
-  var midiFile = new midiFileModule.MidiFile(headerObj, [trackObj]);
+    var midiFile = new midiFileModule.MidiFile(headerObj, [trackObj]);
+    console.log('midiFile', midiFile);
+    return cb(null, midiFile);
+  })
+}
 
-})
+module.exports = {
+  'readMidi': readMidi,
+}
 
 
+/*readMidi('ableton.mid', function(err, midifile) {
+  console.log('midiFile', midifile);
+});*/
 
 
 
 // WORKING, but can just use 'obj.toString('hex')' instead
-function hexToBytes(hex) {
+/*function hexToBytes(hex) {
   count = 0;
 
   for(var i = 0; i < hex.length; i++) {
@@ -232,4 +237,24 @@ function hexToBytes(hex) {
   }
   console.log('count', count);
   return count;
-}
+}*/
+
+// used to extract a 'variable-length quantity' from a stream of bytes in hexadecimal, NOT WORKING (does not extend past 1 byte)
+/*function getDeltaTime(chunk) {
+  var offset = 0;
+  var vlv = 0x00;
+  console.log('initialVLV', vlv);
+
+  do {
+    significantByte = parseInt('0x' + chunk.slice(0 + offset, 2 + offset));
+    console.log('sigByte', significantByte);
+    vlv += significantByte;
+    console.log('updatedVLV', vlv);
+    offset += 2;
+  } while(significantByte > vlvMidpoint);
+  var hex = vlv.toString(16);
+  if(hex.length % 2 === 1) {
+    hex = '0' + hex;
+  }
+  return hex;
+}*/

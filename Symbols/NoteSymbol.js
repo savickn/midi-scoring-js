@@ -22,11 +22,6 @@ class NoteSymbol {
 		return 2 * SheetMusic.NoteHeight + SheetMusic.NoteHeight/2;
 	}
 
-	vertTranslate {
-
-	}
-
-
   draw(Canvas canvas, Paint paint, int ytop) {
 		this.clef = clef; // used to determine where to place note on the staff
 		this.keySig = keySig; // used to determine whether or not to also draw accidentals
