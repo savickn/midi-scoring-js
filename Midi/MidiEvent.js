@@ -1,8 +1,13 @@
 
 // abstract base class for Midi events like NoteOn/NoteOff
 class MidiEvent {
-  constructor(statusCode, channel) {
+  constructor(statusCode, channel, data) {
     this.statusByte = statusCode + channel;
+    this.data = data;
+  }
+
+  toHex() {
+    return this.statusByte + this.data;
   }
 }
 
@@ -13,9 +18,17 @@ class MidiEvent {
 */
 class NoteOn extends MidiEvent {
   constructor(channel, data) {
-    super('9', channel);
+    super('9', channel, data);
     this.note = data.slice(0, 2);
     this.velocity = data.slice(2, 4);
+  }
+
+  getNote() {
+    return this.note;
+  }
+
+  getVelocity() {
+    return this.velocity;
   }
 }
 
@@ -25,10 +38,18 @@ class NoteOn extends MidiEvent {
 * velocity is the 'release' between 0-127
 */
 class NoteOff extends MidiEvent {
-  constructor(channel, note, velocity) {
-    super('8', channel);
+  constructor(channel, data) {
+    super('8', channel, data);
     this.note = data.slice(0, 2);
     this.velocity = data.slice(2, 4);
+  }
+
+  getNote() {
+    return this.note;
+  }
+
+  getVelocity() {
+    return this.velocity;
   }
 }
 
@@ -39,7 +60,7 @@ class NoteOff extends MidiEvent {
 */
 class PolyphonicPressure extends MidiEvent {
   constructor(channel, data) {
-    super('A', channel);
+    super('A', channel, data);
     this.note = data.slice(0, 2);
     this.pressure = data.slice(2, 4);
   }
@@ -52,7 +73,7 @@ class PolyphonicPressure extends MidiEvent {
 */
 class ControllerChange extends MidiEvent {
   constructor(channel, data) {
-    super('B', channel);
+    super('B', channel, data);
     this.ctrl = data.slice(0, 2);
     this.ctrlValue = data.slice(2, 4);
   }
@@ -64,7 +85,7 @@ class ControllerChange extends MidiEvent {
 */
 class ProgramChange extends MidiEvent {
   constructor(channel, data) {
-    super('C', channel);
+    super('C', channel, data);
     this.program = data.slice(0, 2);
   }
 }
@@ -75,7 +96,7 @@ class ProgramChange extends MidiEvent {
 */
 class PitchBend extends MidiEvent {
   constructor(channel, data) {
-    super('E', channel);
+    super('E', channel, data);
     this.lsb = data.slice(0, 2);
     this.msb = data.slice(2, 4);
   }
@@ -86,12 +107,7 @@ class PitchBend extends MidiEvent {
 */
 class AllSoundOff extends MidiEvent {
   constructor(channel) {
-    super('B', channel);
-    this.data = ['78', '00']; // 0x78 and 0x00
-  }
-
-  toHex() {
-    return this.statusByte + this.data.join('');
+    super('B', channel, '7800'); // 0x78 and 0x00
   }
 }
 
@@ -100,12 +116,7 @@ class AllSoundOff extends MidiEvent {
 */
 class ResetAllControllers extends MidiEvent {
   constructor(channel) {
-    super('B', channel);
-    this.data = ['79', '00']; // 0x78 and 0x00
-  }
-
-  toHex() {
-    return this.statusByte + this.data.join('');
+    super('B', channel, '7900'); // 0x78 and 0x00
   }
 }
 
@@ -114,9 +125,7 @@ class ResetAllControllers extends MidiEvent {
 */
 class PolyModeOn extends MidiEvent {
   constructor(channel) {
-    super('B', channel);
-    this.data1 = 0x7F;
-    this.data2 = 0x00;
+    super('B', channel, '7f00'); // 0x7F and 0x00
   }
 }
 
@@ -125,9 +134,7 @@ class PolyModeOn extends MidiEvent {
 */
 class MonoModeOn extends MidiEvent {
   constructor(channel) {
-    super('B', channel);
-    this.data1 = 0x7E;
-    this.data2 = 0x00;
+    super('B', channel, '7e00'); // 0x7E and 0x00
   }
 }
 

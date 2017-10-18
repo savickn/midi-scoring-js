@@ -35,7 +35,7 @@ class Measure {
 		return measureWidth;
 	}
 
-	//adds Note to array so it can be drawn
+	// adds Note to array so it can be drawn
 	addNoteSymbol(starttime, duration) {
 		var endtime = starttime + duration;
 		var self = this;
@@ -49,7 +49,7 @@ class Measure {
 		this.symbolMap.set(starttime, new NoteSymbol(starttime, duration))
 	}
 
-	//adds Rest to array so it can be drawn
+	// adds Rest to array so it can be drawn
 	addRestSymbol(starttime, duration) {
 		var endtime = starttime + duration;
 		var self = this;
@@ -65,18 +65,18 @@ class Measure {
 	}
 
 	//used to change clef properties of this measure
-	setClef(newclef) {
-		this.clef = newclef;
+	setClef(clef) {
+		this.clef = clef;
 	}
 
 	//used to change timeSig properties of this measure
-	setTimeSig(newTimeSig) {
-		this.timeSignature = newTimeSig;
+	setTimeSignature(ts) {
+		this.timeSignature = ts;
 	}
 
 	//used to change keySig properties of this measure
-	setKeySig(newKeySig) {
-		this.keySignature = newKeySig;
+	setKeySignature(ks) {
+		this.keySignature = ks;
 	}
 
 	//draws the measure

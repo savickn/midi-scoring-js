@@ -1,61 +1,16 @@
 
-var instruments {
-	
-}
-
-
 class Instrument {
-	constructor(clef, sound) {
-		//staffs associated with this instrument
-		this.staffArray = staffs;
-		
-		//soundfont 
-		this.sound = sound;
-
-
+	constructor(sound, clefs) {
+		this.sound = sound; // soundfont
+		this.clefs = clefs; // used to create an independent Staff for each clef
 	}
 }
 
-class MidiFile {
-	constructor() {
-		this.name = name //filename
-		this.header = header //representation of <header_chunk>
-		this.tracks = tracks //array of MidiTrack objects which are representations of <track_chunk>
-	}
-}
+var instruments = {};
 
-//represents <header_chunk>
-class MidiHeader {
-	constructor() {
+instruments.Piano = new Instrument('Piano', ['Treble', 'Bass']);
+instruments.Violin = new Instrument('Violin', ['Treble']);
 
-	}
-}
-
-//represents <track_chunk>
-class MidiTrack {
-	constructor() {
-
-	}
-}
-
-class MidiTrackEvent {
-	constructor() {
-
-	}
-}
-
-class MidiMetaEvent {
-	constructor() {
-
-	}
-}
-
-
-/*Common MIDI CCs
-tempo?
-volume?
-velocity?
-
-*/
-
-
+module.exports = {
+	Instrument: instruments,
+};

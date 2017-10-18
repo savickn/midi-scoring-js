@@ -5,6 +5,8 @@ class Staff {
 
 		//this.ytop = ytop; //top of the staff aka y-axis starting point
 		//this.xstart = context.xmargin; //x-axis starting point
+
+
 		this.track = track; // represents the MIDI track that can be constructed from the 'measureArray'
 		this.measureArray = measureArray; // represents the Measures of each staff
 	}

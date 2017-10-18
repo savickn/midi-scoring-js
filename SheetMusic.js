@@ -2,18 +2,25 @@
 //renders the visual representation of the score (using MidiData object)
 
 class SheetMusic {
-	constructor(scoreTitle, composerName, staffMap, scoreOptions) {
+	constructor(scoreTitle, composerName, scoreOptions, midiHeader, midiTracks) {
 		this.scoreTitle = scoreTitle;
 		this.composer = composerName;
-
-		this.instruments = instruments;
-
 		this.scoreOptions = scoreOptions;
+
+		this.staffArray = this.buildStaffs(instruments); // used to create Staffs
 
 		this.measureLengthsArray = this.buildMeasureLengthsArray(numberOfMeasures);
 
 		this.cursorMode = null; // can be 'WRITE' or 'SELECT'
 		this.activeDuration = null; //can be 'quarter-note', 'half-note', etc
+	}
+
+	buildStaffs(instruments) {
+		var staffArray = [];
+		instruments.forEach(function(instrument) {
+
+		})
+		return staffArray;
 	}
 
 	//an array of longestMeasure lengths for each measure

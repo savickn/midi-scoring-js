@@ -13,6 +13,14 @@ class HeaderChunk {
   toHex() {
     return this.type + this.length + this.tracks + this.format + this.division;
   }
+
+  getFormat() {
+    return this.format;
+  }
+
+  getDivision() {
+    return this.division;
+  }
 }
 
 // represents a MIDI Track chunk
@@ -30,6 +38,10 @@ class TrackChunk {
     });
     return rep;
   }
+
+  getEvents() {
+    return this.events;
+  }
 }
 
 // class representing a <deltaTimne>-<event> pair (e.g. MidiTracks contains many TrackEvents)
@@ -41,6 +53,14 @@ class TrackEvent {
 
   toHex() {
     return this.deltaTime + this.ev;
+  }
+
+  getDeltaTime() {
+    return this.deltaTime;
+  }
+
+  getEvent() {
+    return this.ev;
   }
 }
 

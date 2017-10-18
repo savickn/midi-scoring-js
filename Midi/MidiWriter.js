@@ -17,7 +17,7 @@ function saveMidiFile(filename, midiData) {
   })
 }
 
-reader.readMidi('kontakt.mid', function(err, file) {
+reader.readMidi('musescore.mid', function(err, file) {
   //saveMidiFile('mymidi.mid', file);
 })
 

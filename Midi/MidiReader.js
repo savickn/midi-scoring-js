@@ -32,19 +32,6 @@ console.log(channelRegex.test(midi)); // should be 'true'
 console.log(channelRegex.test(sysex)); // should be 'false'
 console.log(channelRegex.test(meta)); // should be 'false'
 
-//used to parse midi files to create MidiData objects
-/*class MidiReader {
-  constructor() {}
-
-  parseMidiFile(path) {
-    fs.readFile('kontakt.mid', 'hex', (err, data) => {
-      if(err) console.log('error', err);
-      console.log('data', data);
-    })
-  }
-}*/
-
-
 
 // used to parse a MIDI header chunk, WORKING
 function parseHeader(header) {
@@ -81,29 +68,22 @@ function getEvent(chunk) {
   var eventCode = chunk.slice(0, 2);
   chunk = chunk.slice(2, chunkLength);
   chunkLength = chunk.length;
-  //console.log('eventCode', eventCode);
 
   if(eventCode === 'ff') {  // handle meta event
     var metaCode = chunk.slice(0, 2);
-    //console.log('metaCode', metaCode);
 
     chunk = chunk.slice(2, chunkLength);
     chunkLength = chunk.length;
 
     var metaVlv = getDeltaTime(chunk);
     var vlvLength = metaVlv.length;
-    //console.log('metaVLV', metaVlv);
     var metaHex = parseInt(metaVlv, 16);
-    //console.log('metaHex', metaHex);
 
     chunk = chunk.slice(vlvLength, chunkLength);
     chunkLength = chunk.length;
 
     var eventData = chunk.slice(0, 2*metaHex);
-    //console.log('eventData', eventData);
-    //var metaEvent = MetaEventModule.GetMetaEvent(metaCode, eventData);
-    //return metaEvent;
-    return eventCode + metaCode + metaVlv + eventData;
+    return MetaEventModule.GetMetaEvent(metaCode, metaVlv, eventData);
 
   } else if(eventCode === 'f0' || eventCode === 'f7') { // handle sysex event
     var sysVlv = getDeltaTime(chunk);
@@ -114,19 +94,19 @@ function getEvent(chunk) {
     chunkLength = chunk.length;
 
     var eventData = chunk.slice(0, 2*sysHex);
-    return eventCode + sysVlv + eventData;
+    return SystemEventModule.GetSystemEvent(eventCode, sysVlv, eventData);
 
   } else if(channelRegex.test(eventCode)) { // handle midi event
     var midiCode = eventCode.slice(0, 1);
     var channel = eventCode.slice(1, 2);
 
-    if(midiCode === '' || midiCode === '') {
+    if(midiCode === 'C' || midiCode === 'D') {
       var dataBytes = chunk.slice(0, 2);
-      return eventCode + dataBytes;
     } else {
       var dataBytes = chunk.slice(0, 4);
-      return eventCode + dataBytes;
     }
+    return MidiEventModule.GetMidiEvent(midiCode, channel, dataBytes);
+
   } else {
     console.log('#### UNABLE TO PARSE ####');
     return;
@@ -137,7 +117,7 @@ function getEvent(chunk) {
 function getDeltaTimeEventPairs(eventChunk) {
   dtePairs = [];
   while(eventChunk.length > 0) {
-    console.log('\n ### NEW ITERATION ### \n')
+    console.log('\n ### NEW ITERATION ###')
     var chunkLength = eventChunk.length;
 
     var vlv = getDeltaTime(eventChunk);
@@ -149,12 +129,12 @@ function getDeltaTimeEventPairs(eventChunk) {
     //console.log('eventChunk', eventChunk);
 
     var ev = getEvent(eventChunk);
-    console.log('parsedEvent', ev)
+    console.log(ev)
     if(ev === null) {
       continue; //used to skip sections that are not supported midi events, PROB NOT WORKING PERFECTLY
     }
-    var evLength = ev.length;
-    console.log('eventlength', evLength);
+    var evLength = ev.toHex().length;
+    //console.log('eventlength', evLength);
 
     eventChunk = eventChunk.slice(0 + evLength, chunkLength);
     chunkLength = eventChunk.length;
