@@ -58,7 +58,7 @@ class NoteOff extends MidiEvent {
 * note is between 0-127
 * pressure is amount of 'aftertouch' between 0-127
 */
-class PolyphonicPressure extends MidiEvent {
+class PolyphonicKeyPressure extends MidiEvent {
   constructor(channel, data) {
     super('A', channel, data);
     this.note = data.slice(0, 2);
@@ -87,6 +87,16 @@ class ProgramChange extends MidiEvent {
   constructor(channel, data) {
     super('C', channel, data);
     this.program = data.slice(0, 2);
+  }
+}
+
+/*
+* not sure about use ???
+*/
+class ChannelKeyPressure extends MidiEvent {
+  constructor(channel, data) {
+    super('D', channel, data);
+    this.channelPressure = data.slice(0, 2);
   }
 }
 
@@ -141,16 +151,33 @@ class MonoModeOn extends MidiEvent {
 // used to retrieve MIDI Events in real-time
 function getMidiEvent(code, channel, data='') {
   switch(code) {
-    case '8': //0x8n:
+    case '8': // 0x8n:
       return new NoteOff(channel, data);
       break;
-    case '9': //0x9n:
+    case '9': // 0x9n:
       return new NoteOn(channel, data);
       break;
-    case 'B': //0xBn:
+    case 'a': // 0xAn
+      return new PolyphonicKeyPressure(channel, data);
+      break;
+    case 'b': // 0xBn:
+      console.log('data', data);
+
+
       return new ControllerChange(channel, data);
       break;
+    case 'c': // 0xCn
+      return new ProgramChange(channel, data);
+      break;
+    case 'd': // 0xDn
+      return new ChannelKeyPressure(channel, data);
+      break;
+    case 'e': // 0xEn
+      return new PitchBend(channel, data);
+      break;
     default:
+      console.log('midi code', code);
+      console.log('midi code not recognized');
       break;
   }
 }

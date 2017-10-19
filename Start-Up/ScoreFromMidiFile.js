@@ -4,11 +4,11 @@
 */
 
 function parseFormatZero(midifile) {
-  
+
 }
 
 function parseFormatOne(midifile) {
-
+  
 }
 
 function parseFormatTwo(midifile) {
