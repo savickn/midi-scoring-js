@@ -1,10 +1,11 @@
 
 const fs = require('fs');
 const reader = require('./MidiReader.js');
+const converter = require('../Start-Up/ScoreFromMidiFile.js');
 
 // used to write a 'MidiFile' object to disk as a '.mid' file, WORKING
-function saveMidiFile(filename, midiData) {
-  fs.writeFile(filename, midiData.toHex(), 'hex', (err) => {
+function saveMidiFile(filename, midifile) {
+  fs.writeFile(filename, midifile.toHex(), 'hex', (err) => {
     if(err) console.log('error', err);
 
     /*reader.readMidi('mymidi.mid', function(err, file) {
@@ -17,8 +18,9 @@ function saveMidiFile(filename, midiData) {
   })
 }
 
-reader.readMidi('ableton.mid', function(err, file) {
-  saveMidiFile('mymidi.mid', file);
+reader.readMidi('./MidiFiles/ableton.mid', function(err, file) {
+  //saveMidiFile('mymidi.mid', file);
+  converter.createSheetMusic(file);
 })
 
 module.exports = {

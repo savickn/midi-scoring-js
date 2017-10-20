@@ -53,17 +53,17 @@ class TimeSignature extends MetaEvent {
   constructor(data) {
     super('58', '04', data); //(0x58, 0x04);
     this.num = data.slice(0, 2);
-    this.denom = data.slice(2, 4);
+    this.denom = data.slice(2, 4); // as a power of 2 (e.g. denom = 2 would be time signature of 4)
     this.clocks = data.slice(4, 6); //
     this.notesPer24Clocks = data.slice(6, 8); //
   }
 
   getNumerator() {
-    return this.num;
+    return parseInt(this.num, 16);
   }
 
   getDenominator() {
-    return this.denom;
+    return Math.pow(2, parseInt(this.denom, 16));
   }
 
   getClocks() {
@@ -154,4 +154,8 @@ function getMetaEvent(code, length, data='') {
 
 module.exports = {
   GetMetaEvent: getMetaEvent,
+  EndOfTrack: EndOfTrack,
+  SetTempo: SetTempo,
+  TimeSignature: TimeSignature,
+  KeySignature: KeySignature,
 };

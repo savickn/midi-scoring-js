@@ -1,29 +1,25 @@
 
 
 class TimeSignature {
-  constructor (tempo, numerator, denominator, quarternote) {
+  constructor (numerator, denominator, quarternote) {
   	if (numerator <= 0 || denominator <= 0 || quarternote <= 0) {
       throw new MidiFileException("Invalid time signature", 0);
     }
 
-  	this.tempo = tempo; //in beats per minute or seconds per quarter note??
-  	this.numerator = numerator; 
+  	this.numerator = numerator;
     this.denominator = denominator;
     this.quarternote = quarternote || 96; // pulses per quarternote, default is 96
 
-  	this.timeSig = timeNumerator/timeDenominator;
+  	//this.timeSignature = numerator/denominator;
 
-    //pulses per beat
-    if (denominator == 2)
-        this.beat = quarternote * 2;
-    else
-        this.beat = quarternote / (denominator/4);
-
-    this.measure = numerator * beat; //pulses per measure
+    this.beat = denominator === 2 ? quarternote * 2 : quarternote / (denominator/4); // pulses per beat
+    this.measure = numerator * beat; // pulses per measure
   }
 
-  /** Given a duration in pulses, return the closest note duration. 
-  only use for sheet music*/
+  /*
+  * Given a duration in pulses/ticks, return the closest note duration.
+  * only use for sheet music
+  */
   convertMIDIDurationToNote(duration) {
     var whole = this.quarternote * 4; //pulses for whole note
 
@@ -47,7 +43,7 @@ class TimeSignature {
         return "Sixteenth";
     else if (duration >= 2)
         return "ThirtySecond";
-    else 
+    else
     		return "SixtyFourth";
   }
 

@@ -7,19 +7,26 @@ class HeaderChunk {
 
     this.format = format;
     this.tracks = numberOfTracks;
-    this.division = division; // used to set the number of ticks per quarter note
+
+    /* need to convert Hexadecimal to Binary before extracting the MSB */
+    this.dType = division.slice(0, 1);
+    this.dValue = division.slice(1, division.length); // used to set the number of ticks per quarter note
   }
 
   toHex() {
-    return this.type + this.length + this.format + this.tracks + this.division;
+    return this.type + this.length + this.format + this.tracks + this.dType + this.dValue;
+  }
+
+  getNumberOfTracks() {
+    return parseInt(this.tracks, 16);
   }
 
   getFormat() {
-    return this.format;
+    return parseInt(this.format, 16);
   }
 
-  getDivision() {
-    return this.division;
+  getTicksPerQuarterNote() {
+    return parseInt(this.dValue, 16);
   }
 }
 
@@ -39,8 +46,30 @@ class TrackChunk {
     return rep;
   }
 
+  // used to return all Midi Events
   getEvents() {
     return this.events;
+  }
+
+  // used to select Midi Events of a specific type by passing a class constructor, WORKING
+  getEventsByType(type) {
+    var output = [];
+    this.events.forEach(function(ev) {
+      if(ev.getEvent() instanceof type) {
+        output.push(ev);
+      }
+    });
+    return output;
+  }
+
+  // used to return the total length of the track in MIDI ticks/pulses, PROBABLY WORKING
+  getTrackLengthInTicks() {
+    var output = 0;
+    this.events.forEach(function(ev) {
+      output += ev.getDeltaTime();
+      console.log(output);
+    });
+    return output;
   }
 }
 
@@ -56,7 +85,9 @@ class TrackEvent {
   }
 
   getDeltaTime() {
-    return this.deltaTime;
+    //return parseInt(this.deltaTime, 16);
+    var binary = this.deltaTime.toString(2);
+    console.log('binary', binary);
   }
 
   getEvent() {
@@ -86,6 +117,10 @@ class MidiFile {
 
   getTracks() {
     return this.trackChunks;
+  }
+
+  getFirstTrack() {
+    return this.trackChunks[0];
   }
 }
 
