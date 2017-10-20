@@ -2,7 +2,7 @@
 // abstract base class for Meta events like EndOfTrack, SetTempo
 class MetaEvent {
   constructor(type, length, data) {
-    this.code = 'FF'; //0xFF;
+    this.code = 'ff'; //0xFF;
     this.type = type;
     this.length = length;
     this.data = data;
@@ -95,6 +95,25 @@ class KeySignature extends MetaEvent {
   }
 }
 
+/*
+* used when the midi message format is correct but the message type is unsupported
+*/
+class SelectMidiPort extends MetaEvent {
+  constructor(data) {
+    super('21', '01', data); //(0x59, 0x02);
+  }
+}
+
+/*
+* used when the midi message format is correct but the message type is unsupported
+*/
+class GenericMetaEvent extends MetaEvent {
+  constructor(code, length, data) {
+    super(code, length, data); //(0x59, 0x02);
+  }
+}
+
+
 // used to retrieve Meta Events in real-time
 function getMetaEvent(code, length, data='') {
   switch(code) {
@@ -113,6 +132,9 @@ function getMetaEvent(code, length, data='') {
     case '2f': //0x2f:
       return new EndOfTrack();
       break;
+    case '21': //0x21:
+      return new SelectMidiPort(data);
+      break;
     case '51': //0x51:
       return new SetTempo(data);
       break;
@@ -123,7 +145,9 @@ function getMetaEvent(code, length, data='') {
       return new KeySignature(data);
       break;
     default:
-      console.log('not recognized');
+      console.log('meta code', code);
+      console.log('meta code not recognized');
+      return new GenericMetaEvent(code, length, data);
       break;
   }
 }

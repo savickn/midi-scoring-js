@@ -17,8 +17,8 @@ function saveMidiFile(filename, midiData) {
   })
 }
 
-reader.readMidi('musescore.mid', function(err, file) {
-  //saveMidiFile('mymidi.mid', file);
+reader.readMidi('ableton.mid', function(err, file) {
+  saveMidiFile('mymidi.mid', file);
 })
 
 module.exports = {

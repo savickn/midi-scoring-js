@@ -66,6 +66,7 @@ function getDeltaTime(chunk) {
 function getEvent(chunk) {
   var chunkLength = chunk.length;
   var eventCode = chunk.slice(0, 2);
+  //console.log('eventCode', eventCode);
   chunk = chunk.slice(2, chunkLength);
   chunkLength = chunk.length;
 
@@ -108,35 +109,31 @@ function getEvent(chunk) {
     return MidiEventModule.GetMidiEvent(midiCode, channel, dataBytes);
 
   } else {
-    console.log('#### UNABLE TO PARSE #### \n', chunk);
-    return;
+    //console.log('#### UNABLE TO PARSE #### \n', chunk);
+    return null;
   }
 }
 
 // used to split a 'track' chunk into 'deltaTime-event' pairs
 function getDeltaTimeEventPairs(eventChunk) {
-  dtePairs = [];
-  while(eventChunk.length > 0) {
-    console.log('\n ### NEW ITERATION ###')
-    var chunkLength = eventChunk.length;
+  var dtePairs = [];
+  var chunkLength = eventChunk.length;
 
+  while(eventChunk.length > 0) {
+    //console.log('\n ### NEW ITERATION ###')
     var vlv = getDeltaTime(eventChunk);
     var vlvLength = vlv.length;
     console.log('vlv', vlv);
 
-    eventChunk = eventChunk.slice(0 + vlvLength, chunkLength);
-    chunkLength = eventChunk.length;
-    //console.log('eventChunk', eventChunk);
-
-    var ev = getEvent(eventChunk);
-    console.log(ev)
+    var ev = getEvent(eventChunk.slice(vlvLength, chunkLength));
+    console.log('event', ev);
     if(ev === null) {
+      eventChunk = eventChunk.slice(2, chunkLength);
       continue; //used to skip sections that are not supported midi events, PROB NOT WORKING PERFECTLY
     }
     var evLength = ev.toHex().length;
-    //console.log('eventlength', evLength);
 
-    eventChunk = eventChunk.slice(0 + evLength, chunkLength);
+    eventChunk = eventChunk.slice(vlvLength + evLength, chunkLength);
     chunkLength = eventChunk.length;
 
     var trackEvent = new midiFileModule.TrackEvent(vlv, ev);
@@ -150,10 +147,10 @@ function parseTrack(track) {
   var trackLength = track.slice(8, 16);
   var eventChunk = track.slice(16, track.length);
 
-  console.log('#### TRACK ####');
-  console.log('trackChunk', track);
-  console.log('trackLength', trackLength);
-  console.log(eventChunk);
+  //console.log('#### TRACK ####');
+  //console.log('trackChunk', track);
+  //console.log('trackLength', trackLength);
+  //console.log(eventChunk);
 
   var dtePairs = getDeltaTimeEventPairs(eventChunk);
   var track = new midiFileModule.TrackChunk(trackLength, dtePairs);
@@ -164,39 +161,26 @@ function parseTrack(track) {
 function readMidi(filename, cb) {
   fs.readFile(filename, 'hex', (err, data) => {
     if(err) console.log('error', err);
-    //console.log('data', data);
-    //console.log('dataLength', data.length);
 
     var chunks = data.split(trackId);
     var numberOfChunks = chunks.length;
     var headerChunk = chunks[0];
     var trackChunks = chunks.slice(1, numberOfChunks);
 
-    /*var headerIdx = data.indexOf(headerId);
-    var track1Idx = data.indexOf(trackId);
-    var trackSize = data.slice(track1Idx + 8, track1Idx + 16);
-    var bytes = parseInt(trackSize, 16);
-
-    var header = data.slice(headerIdx, track1Idx);
-    var track1 = data.slice(track1Idx, track1Idx + 16 + bytes * 2);
-
-    console.log('headerIdx', headerIdx);
-    console.log('track1Idx', track1Idx);
-
-    console.log('header', header);
-    console.log('headerLength', header.length);
-
-    console.log('track1', track1);
-    console.log('track1Length', track1.length);*/
-
     var header = parseHeader(headerChunk);
-    var tracks = trackChunks.map(function(chunk) {
+    var tracks = trackChunks.map(function(chunk, idx) {
+      //console.log('track-', idx, '  ', chunk);
       return parseTrack(trackId + chunk);
     });
 
-
-    var midiFile = new midiFileModule.MidiFile(headerObj, tracks);
+    var midiFile = new midiFileModule.MidiFile(header, tracks);
     console.log('midiFile', midiFile);
+    /*var t = midiFile.getTracks();
+    t.forEach(function(tr) {
+      if(tr !== undefined) {
+        console.log(tr.toHex());
+      }
+    })*/
     return cb(null, midiFile);
   })
 }
@@ -245,4 +229,46 @@ module.exports = {
     hex = '0' + hex;
   }
   return hex;
+}
+
+
+// used to parse/convert '.mid' file to MidiFile object, WORKING
+function readMidi(filename, cb) {
+  fs.readFile(filename, 'hex', (err, data) => {
+    if(err) console.log('error', err);
+    //console.log('data', data);
+    //console.log('dataLength', data.length);
+
+    var chunks = data.split(trackId);
+    var numberOfChunks = chunks.length;
+    var headerChunk = chunks[0];
+    var trackChunks = chunks.slice(1, numberOfChunks);
+
+    var headerIdx = data.indexOf(headerId);
+    var track1Idx = data.indexOf(trackId);
+    var trackSize = data.slice(track1Idx + 8, track1Idx + 16);
+    var bytes = parseInt(trackSize, 16);
+
+    var header = data.slice(headerIdx, track1Idx);
+    var track1 = data.slice(track1Idx, track1Idx + 16 + bytes * 2);
+
+    console.log('headerIdx', headerIdx);
+    console.log('track1Idx', track1Idx);
+
+    console.log('header', header);
+    console.log('headerLength', header.length);
+
+    console.log('track1', track1);
+    console.log('track1Length', track1.length);
+
+    var header = parseHeader(headerChunk);
+    var tracks = trackChunks.map(function(chunk) {
+      return parseTrack(trackId + chunk);
+    });
+
+
+    var midiFile = new midiFileModule.MidiFile(header, tracks);
+    console.log('midiFile', midiFile);
+    return cb(null, midiFile);
+  })
 }*/

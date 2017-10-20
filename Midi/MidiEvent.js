@@ -60,7 +60,7 @@ class NoteOff extends MidiEvent {
 */
 class PolyphonicKeyPressure extends MidiEvent {
   constructor(channel, data) {
-    super('A', channel, data);
+    super('a', channel, data);
     this.note = data.slice(0, 2);
     this.pressure = data.slice(2, 4);
   }
@@ -73,7 +73,7 @@ class PolyphonicKeyPressure extends MidiEvent {
 */
 class ControllerChange extends MidiEvent {
   constructor(channel, data) {
-    super('B', channel, data);
+    super('b', channel, data);
     this.ctrl = data.slice(0, 2);
     this.ctrlValue = data.slice(2, 4);
   }
@@ -85,7 +85,7 @@ class ControllerChange extends MidiEvent {
 */
 class ProgramChange extends MidiEvent {
   constructor(channel, data) {
-    super('C', channel, data);
+    super('c', channel, data);
     this.program = data.slice(0, 2);
   }
 }
@@ -95,7 +95,7 @@ class ProgramChange extends MidiEvent {
 */
 class ChannelKeyPressure extends MidiEvent {
   constructor(channel, data) {
-    super('D', channel, data);
+    super('d', channel, data);
     this.channelPressure = data.slice(0, 2);
   }
 }
@@ -106,7 +106,7 @@ class ChannelKeyPressure extends MidiEvent {
 */
 class PitchBend extends MidiEvent {
   constructor(channel, data) {
-    super('E', channel, data);
+    super('e', channel, data);
     this.lsb = data.slice(0, 2);
     this.msb = data.slice(2, 4);
   }
@@ -117,7 +117,7 @@ class PitchBend extends MidiEvent {
 */
 class AllSoundOff extends MidiEvent {
   constructor(channel) {
-    super('B', channel, '7800'); // 0x78 and 0x00
+    super('b', channel, '7800'); // 0x78 and 0x00
   }
 }
 
@@ -126,7 +126,7 @@ class AllSoundOff extends MidiEvent {
 */
 class ResetAllControllers extends MidiEvent {
   constructor(channel) {
-    super('B', channel, '7900'); // 0x78 and 0x00
+    super('b', channel, '7900'); // 0x78 and 0x00
   }
 }
 
@@ -135,7 +135,7 @@ class ResetAllControllers extends MidiEvent {
 */
 class PolyModeOn extends MidiEvent {
   constructor(channel) {
-    super('B', channel, '7f00'); // 0x7F and 0x00
+    super('b', channel, '7f00'); // 0x7F and 0x00
   }
 }
 
@@ -144,7 +144,7 @@ class PolyModeOn extends MidiEvent {
 */
 class MonoModeOn extends MidiEvent {
   constructor(channel) {
-    super('B', channel, '7e00'); // 0x7E and 0x00
+    super('b', channel, '7e00'); // 0x7E and 0x00
   }
 }
 

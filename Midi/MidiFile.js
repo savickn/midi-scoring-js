@@ -5,13 +5,13 @@ class HeaderChunk {
     this.type = '4d546864'; // 0x4d546864
     this.length = '00000006'; // 0x00000006
 
-    this.tracks = numberOfTracks;
     this.format = format;
+    this.tracks = numberOfTracks;
     this.division = division; // used to set the number of ticks per quarter note
   }
 
   toHex() {
-    return this.type + this.length + this.tracks + this.format + this.division;
+    return this.type + this.length + this.format + this.tracks + this.division;
   }
 
   getFormat() {
@@ -52,7 +52,7 @@ class TrackEvent {
   }
 
   toHex() {
-    return this.deltaTime + this.ev;
+    return this.deltaTime + this.ev.toHex();
   }
 
   getDeltaTime() {
