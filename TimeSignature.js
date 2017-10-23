@@ -10,15 +10,19 @@ class TimeSignature {
     this.denominator = denominator;
     this.quarternote = quarternote || 96; // pulses per quarternote, default is 96
 
-  	//this.timeSignature = numerator/denominator;
-
     this.beat = denominator === 2 ? quarternote * 2 : quarternote / (denominator/4); // pulses per beat
     this.measure = numerator * beat; // pulses per measure
   }
 
   /*
-  * Given a duration in pulses/ticks, return the closest note duration.
-  * only use for sheet music
+  * returns the measure the timestamp (in MIDI pulses) occurs in based on the current time signature
+  */
+  midiTicksToMeasure(timestamp) {
+    return Math.floor(timestamp/this.measure);
+  }
+
+  /*
+  * accepts a duration in MIDI pulses/ticks and returns the closest note duration.
   */
   convertMIDIDurationToNote(duration) {
     var whole = this.quarternote * 4; //pulses for whole note
@@ -47,8 +51,7 @@ class TimeSignature {
     		return "SixtyFourth";
   }
 
-  /** Convert a note duration into a stem duration.  Dotted durations
-   * are converted into their non-dotted equivalents.
+  /** used to select which stem to render based on note duration
    */
   get stemDuration(noteValue) {
     if (noteValue == "DottedHalf")

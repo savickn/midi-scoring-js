@@ -65,9 +65,8 @@ class TrackChunk {
   // used to return the total length of the track in MIDI ticks/pulses, PROBABLY WORKING
   getTrackLengthInTicks() {
     var output = 0;
-    this.events.forEach(function(ev) {
-      output += ev.getDeltaTime();
-      console.log(output);
+    this.events.forEach(function(te) {
+      output += te.getDeltaTime();
     });
     return output;
   }
@@ -85,9 +84,19 @@ class TrackEvent {
   }
 
   getDeltaTime() {
-    //return parseInt(this.deltaTime, 16);
-    var binary = this.deltaTime.toString(2);
-    console.log('binary', binary);
+    //console.log('hex', this.deltaTime);
+    var binary = parseInt(this.deltaTime, 16).toString(2);
+    //console.log('binary', binary);
+    var value = '';
+    for (var i = 0, len = binary.length; i < len; i += 8) {
+      var bstring = binary.slice(i, i + 8);
+      if(bstring.length < 8) {
+        value += bstring;
+      } else {
+        value += bstring.slice(1, 8);
+      }
+    }
+    return parseInt(value, 2);
   }
 
   getEvent() {
