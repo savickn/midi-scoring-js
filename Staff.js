@@ -1,18 +1,17 @@
 class Staff {
 
-	constructor(measureArray, track) {
+	constructor(id, instrument, measureArray, controllerMap, track) {
 		//this.sheetMusic = context;
 
 		//this.ytop = ytop; //top of the staff aka y-axis starting point
 		//this.xstart = context.xmargin; //x-axis starting point
 
-
-		this.track = track; // represents the MIDI track that can be constructed from the 'measureArray'
+		this.id = id // starts at 0
+		this.instrument = instrument; // represents the MIDI instrument to use as a value between 0-127
+		this.controllerMap = controllerMap; // represents controller changes for this track... structured as {ctrlName: {timestamp1: ctrlValue1, timestamp2: ctrlValue2, etc}}
 		this.measureArray = measureArray; // represents the Measures of each staff
-	}
 
-	addNote(measure, starttime, duration) {
-
+		//this.track = track; // represents the MIDI track that can be constructed from the 'measureArray'
 	}
 
 	//draws the staff

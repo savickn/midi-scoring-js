@@ -1,28 +1,33 @@
 
 
 class Measure {
-	constructor(id, timeSignature, keySignature, clef, sound) {
-		this.id = id; //starts at 1
+	constructor(id, starttime, endtime) {
+		this.id = id; // starts at 0 for simplicity
 		this.width = getMeasureWidth(); //width in pixels based on symbols in symbolArra
-		this.starttime = timeSignature.measure + id*timeSignature.measure; //MIDI pulse time when this measure starts
-		this.endtime = starttime + timeSignature.measure; //MIDI pulse time at end
 
-		this.sound = sound;
+		this.starttime = starttime; // returns the start of the measure as a MIDI pulse timestamp
+		this.endtime = endtime; // returns the end of the measure as a MIDI pulse timestamp
+
+		this.symbolMap = {}; // used to map individual notes to their midi pulse timestamps
+
+
+		// alternative implementation
+		//this.starttime = timeSignature.measure + id*timeSignature.measure; // returns the start of the measure as a MIDI pulse timestamp
+		//this.endtime = starttime + timeSignature.measure; // returns the end of the measure as a MIDI pulse timestamp
 
 		//this.drawableclef = drawableclef; //determines if clef should be drawn
 		//this.drawablekey = drawablekey; //determines if clef should be drawn
 		//this.drawabletime = drawabletime; //determines if clef should be drawn
 
-		this.symbolMap = new Map();
+		// not needed, will be stored as a ClefMap by Staff and passed as argument when drawing
+		//this.clef = clef;
+		//this.clefSymbol = new ClefSymbol(clef, starttime);
 
-		this.clef = clef;
-		this.clefSymbol = new ClefSymbol(clef, starttime);
+		//this.keySignature = keySignature;
+		//this.keySymbol = new KeySymbol();
 
-		this.keySignature = keySignature;
-		this.keySymbol = new KeySymbol();
-
-		this.timeSignature = timeSignature;
-		this.timeSymbol = new TimeSymbol();
+		//this.timeSignature = timeSignature;
+		//this.timeSymbol = new TimeSymbol();
 	}
 
 	//determines how long the measure needs to be drawn

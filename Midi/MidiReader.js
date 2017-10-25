@@ -33,6 +33,20 @@ console.log(channelRegex.test(sysex)); // should be 'false'
 console.log(channelRegex.test(meta)); // should be 'false'
 
 
+function convertDeltaTimeToDecimal(dt) {
+  var binary = parseInt(dt, 16).toString(2);
+  var value = '';
+  for (var i = 0, len = binary.length; i < len; i += 8) {
+    var bstring = binary.slice(i, i + 8);
+    if(bstring.length < 8) {
+      value += bstring;
+    } else {
+      value += bstring.slice(1, 8);
+    }
+  }
+  return parseInt(value, 2);
+}
+
 // used to parse a MIDI header chunk, WORKING
 function parseHeader(header) {
   var length = header.slice(8, 16);
@@ -118,15 +132,17 @@ function getEvent(chunk) {
 function getDeltaTimeEventPairs(eventChunk) {
   var dtePairs = [];
   var chunkLength = eventChunk.length;
+  var runtime = 0;
 
   while(eventChunk.length > 0) {
     //console.log('\n ### NEW ITERATION ###')
     var vlv = getDeltaTime(eventChunk);
     var vlvLength = vlv.length;
-    console.log('vlv', vlv);
+    //console.log('vlv', vlv);
+    runtime += convertDeltaTimeToDecimal(vlv);
 
     var ev = getEvent(eventChunk.slice(vlvLength, chunkLength));
-    console.log('event', ev);
+    //console.log('midiEvent', ev);
     if(ev === null) {
       eventChunk = eventChunk.slice(2, chunkLength);
       continue; //used to skip sections that are not supported midi events, PROB NOT WORKING PERFECTLY
@@ -136,7 +152,8 @@ function getDeltaTimeEventPairs(eventChunk) {
     eventChunk = eventChunk.slice(vlvLength + evLength, chunkLength);
     chunkLength = eventChunk.length;
 
-    var trackEvent = new midiFileModule.TrackEvent(vlv, ev);
+    var trackEvent = new midiFileModule.TrackEvent(runtime, vlv, ev);
+    console.log(trackEvent);
     dtePairs.push(trackEvent);
   }
   return dtePairs;

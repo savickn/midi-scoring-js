@@ -35,7 +35,7 @@ class TrackChunk {
   constructor(length, events) {
     this.type = '4d54726b'; // 0x4d54726b
     this.length = length;
-    this.events = events; // represents deltaTime-midiEvent pairs;
+    this.events = events; // array, represents deltaTime-midiEvent pairs
   }
 
   toHex() {
@@ -44,11 +44,6 @@ class TrackChunk {
       rep += ev.toHex();
     });
     return rep;
-  }
-
-  // used to return all Midi Events
-  getEvents() {
-    return this.events;
   }
 
   // used to select Midi Events of a specific type by passing a class constructor, WORKING
@@ -74,7 +69,8 @@ class TrackChunk {
 
 // class representing a <deltaTimne>-<event> pair (e.g. MidiTracks contains many TrackEvents)
 class TrackEvent {
-  constructor(deltaTime, ev) {
+  constructor(timestamp, deltaTime, ev) {
+    this.timestamp = timestamp;
     this.deltaTime = deltaTime;
     this.ev = ev;
   }
@@ -83,10 +79,14 @@ class TrackEvent {
     return this.deltaTime + this.ev.toHex();
   }
 
+  // returns the temporal position of the event relative to the track's entire runtime
+  getTimeStamp() {
+    return this.timestamp;
+  }
+
+  // returns delta-time in pulses (decimal base)
   getDeltaTime() {
-    //console.log('hex', this.deltaTime);
     var binary = parseInt(this.deltaTime, 16).toString(2);
-    //console.log('binary', binary);
     var value = '';
     for (var i = 0, len = binary.length; i < len; i += 8) {
       var bstring = binary.slice(i, i + 8);
@@ -107,7 +107,8 @@ class TrackEvent {
 // represents a MIDI File which contains a single Header chunk and multiple Track chunks
 // add indexing so can alter individual parts of a file
 class MidiFile {
-  constructor(headerChunk, trackChunks) {
+  constructor(headerChunk, trackChunks, title="midi") {
+    this.title = title;
     this.headerChunk = headerChunk;
     this.trackChunks = trackChunks;
   }
@@ -118,6 +119,10 @@ class MidiFile {
       rep += chunk.toHex();
     });
     return rep;
+  }
+
+  getTitle() {
+    return this.title;
   }
 
   getHeader() {

@@ -77,6 +77,14 @@ class ControllerChange extends MidiEvent {
     this.ctrl = data.slice(0, 2);
     this.ctrlValue = data.slice(2, 4);
   }
+
+  getController() {
+    return parseInt(this.ctrl, 16);
+  }
+
+  getControllerValue() {
+    return parseInt(this.ctrlValue, 16);
+  }
 }
 
 /*
@@ -87,6 +95,10 @@ class ProgramChange extends MidiEvent {
   constructor(channel, data) {
     super('c', channel, data);
     this.program = data.slice(0, 2);
+  }
+
+  getInstrument() {
+    return parseInt(this.program, 16);
   }
 }
 
@@ -162,8 +174,7 @@ function getMidiEvent(code, channel, data='') {
       break;
     case 'b': // 0xBn:
       console.log('data', data);
-
-
+      // add code to handle other 'Bn' messages
       return new ControllerChange(channel, data);
       break;
     case 'c': // 0xCn
@@ -182,7 +193,10 @@ function getMidiEvent(code, channel, data='') {
   }
 }
 
-//export MidiEventFactory;
 module.exports = {
   GetMidiEvent: getMidiEvent,
+  NoteOn: NoteOn,
+  NoteOff: NoteOff,
+  ProgramChange: ProgramChange,
+  ControllerChange: ControllerChange,
 };

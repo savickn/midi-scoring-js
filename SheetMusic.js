@@ -1,23 +1,26 @@
 
-//renders the visual representation of the score (using MidiData object)
-
+// renders the visual representation of the score (using MidiData object)
 class SheetMusic {
-	constructor(scoreTitle, composerName, scoreOptions, midiHeader, midiTracks) {
+	constructor(scoreTitle, /*composerName,*/ scoreOptions, tracks, /*midiHeader, midiTracks,*/ timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures) {
 		this.scoreTitle = scoreTitle;
-		this.composer = composerName;
+		//this.composer = composerName;
 		this.scoreOptions = scoreOptions;
 
-		this.staffArray = this.buildStaffs(instruments); // used to create Staffs
+		this.timeSignatureMap = timeSignatureMap; // represents the time signature changes in the song (as midi pulse timestamps)
+		this.keySignatureMap = keySignatureMap; // represents the key signature changes in the song (as midi pulse timestamps)
+		this.tempoMap = tempoMap; // represents the tempo changes in the song (as midi pulse timestamps)
+		this.numberOfMeasures = numberOfMeasures; // represents the totla number of measures in the song
 
-		this.measureLengthsArray = this.buildMeasureLengthsArray(numberOfMeasures);
+		this.staffArray = this.buildStaffs(tracks); // used to create Staffs from MIDI track chunks
+		//this.measureLengthsArray = this.buildMeasureLengthsArray(numberOfMeasures);
 
 		this.cursorMode = null; // can be 'WRITE' or 'SELECT'
 		this.activeDuration = null; //can be 'quarter-note', 'half-note', etc
 	}
 
-	buildStaffs(instruments) {
+	buildStaffs(tracks) {
 		var staffArray = [];
-		instruments.forEach(function(instrument) {
+		tracks.forEach(function(tracks) {
 
 		})
 		return staffArray;
@@ -55,4 +58,8 @@ class SheetMusic {
 			ytop += self.scoreOptions.staffHeight + self.scoreOptions.staffMargin;
 		});
 	}
+}
+
+module.exports = {
+	'SheetMusic': SheetMusic,
 }

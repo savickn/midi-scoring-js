@@ -5,24 +5,25 @@
 
 
 class NoteSymbol {
-	constructor(clef, keySig, starttime, duration, note, velocity) {
-		this.clef = clef; // used to determine where to place note on the staff
-		this.keySig = keySig; // used to determine whether or not to also draw accidentals (also need to draw if previous note has a different accidental)
+	constructor(/*clef, keySig,*/ starttime, duration, note, velocityOn, velocityOff) {
+		//this.clef = clef; // used to determine where to place note on the staff
+		//this.keySig = keySig; // used to determine whether or not to also draw accidentals (also need to draw if previous note has a different accidental)
 
-		this.width = getMinWidth();
+		//this.width = getMinWidth();
 
-		this.starttime = starttime; // in ms, used with 'duration' to create 'NoteOn' and 'NoteOff' MIDI events
-		this.duration = duration; // in ms
+		this.starttime = starttime; // as a midi pulse timestamp, used with 'duration' to create 'NoteOn' and 'NoteOff' MIDI events
+		this.duration = duration; // in midi pulses
 
 		this.note = note; // refers to a MIDI note value between 0-127
-		this.velocity = velocity;
+		this.velocityOn = velocityOn; // refers to MIDI velocity value between 0-127
+		this.velocityOff = velocityOff; // refers to MIDI velocity value between 0-127
 	}
 
 	getMinWidth() {
 		return 2 * SheetMusic.NoteHeight + SheetMusic.NoteHeight/2;
 	}
 
-  draw(Canvas canvas, Paint paint, int ytop) {
+  draw(canvas, paint, ytop) {
 		this.clef = clef; // used to determine where to place note on the staff
 		this.keySig = keySig; // used to determine whether or not to also draw accidentals
 
@@ -31,7 +32,7 @@ class NoteSymbol {
     canvas.translate(getWidth() - getMinWidth(), 0);
     canvas.translate(SheetMusic.noteHeight/2, 0);
 
-    canvas.translate(0, )
+    //canvas.translate(0, )
 
     if (duration == "Whole") {
         drawWhole(canvas, paint, ytop);
@@ -49,7 +50,7 @@ class NoteSymbol {
     canvas.translate(-(getWidth() - getMinWidth()), 0);
   }
 
-  drawWhole(Canvas canvas, Paint paint, int ytop) {
+  drawWhole(canvas, paint, ytop) {
     var y = ytop + SheetMusic.NoteHeight;
     paint.setStyle(Paint.Style.FILL);
     canvas.drawRect(0, y, SheetMusic.NoteWidth, y + SheetMusic.NoteHeight/2, paint);
@@ -57,19 +58,19 @@ class NoteSymbol {
   }
 
 
-  drawHalf(Canvas canvas, Paint paint, int ytop) {
+  drawHalf(canvas, paint, ytop) {
     var y = ytop + SheetMusic.NoteHeight + SheetMusic.NoteHeight/2;
     paint.setStyle(Paint.Style.FILL);
     canvas.drawRect(0, y, SheetMusic.NoteWidth, y + SheetMusic.NoteHeight/2, paint);
     paint.setStyle(Paint.Style.STROKE);
   }
 
-  drawQuarter(Canvas canvas, Paint paint, int ytop) {
+  drawQuarter(canvas, paint, ytop) {
     paint.setStrokeCap(Paint.Cap.BUTT);
 
-    int y = ytop + SheetMusic.NoteHeight/2;
-    int x = 2;
-    int xend = x + 2*SheetMusic.NoteHeight/3;
+    var y = ytop + SheetMusic.NoteHeight/2;
+    var x = 2;
+    var xend = x + 2*SheetMusic.NoteHeight/3;
     paint.setStrokeWidth(1);
     canvas.drawLine(x, y, xend-1, y + SheetMusic.NoteHeight-1, paint);
 
@@ -98,7 +99,7 @@ class NoteSymbol {
 
   drawEighth(stage, graphics, ytop) {
     var y = ytop + SheetMusic.noteHeight - 1;
-    RectF rect = new RectF(0, y+1,
+    var rect = new RectF(0, y+1,
                            SheetMusic.LineSpace-1, y+1 + SheetMusic.LineSpace-1);
     paint.setStyle(Paint.Style.FILL);
     canvas.drawOval(rect, paint);
@@ -109,6 +110,8 @@ class NoteSymbol {
     canvas.drawLine(3*SheetMusic.LineSpace/2, y + SheetMusic.LineSpace/2,
                     3*SheetMusic.LineSpace/4, y + SheetMusic.NoteHeight*2, paint);
   }
-
-
 }
+
+module.exports = {
+	NoteSymbol: NoteSymbol,
+};

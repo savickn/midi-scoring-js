@@ -13,7 +13,11 @@ class ScoreOptions {
 
 		this.noteWidth = 3 * this.lineSpace/2
 		this.noteHeight = this.lineSpace + this.lineWidth;
-	}	
+	}
+}
+
+module.exports = {
+	'ScoreOptions': ScoreOptions,
 }
 
 /*
