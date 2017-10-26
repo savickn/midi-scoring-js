@@ -24,8 +24,6 @@ class NoteSymbol {
 	}
 
   draw(canvas, paint, ytop) {
-		this.clef = clef; // used to determine where to place note on the staff
-		this.keySig = keySig; // used to determine whether or not to also draw accidentals
 
 
     /* Align the rest symbol to the right */

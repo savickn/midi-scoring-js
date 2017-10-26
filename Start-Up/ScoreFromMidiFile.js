@@ -8,6 +8,9 @@ const MidiEventModule = require('../Midi/MidiEvent.js');
 const OptionsModule = require('../ScoreOptions.js');
 const ScoreModule = require('../SheetMusic.js');
 const NoteModule = require('../Symbols/NoteSymbol.js');
+const MeasureModule = require('../Staff.js');
+const StaffModule = require('../Measure.js');
+
 
 /*
 * globals
@@ -17,17 +20,7 @@ const NoteModule = require('../Symbols/NoteSymbol.js');
 //const defaultKey;
 //const defaultClef;
 
-
-/*
-* helper functions
-*/
-
-function calculateQuarterNotesPerBar(numerator, denominator, quarternote) {
-  var scaleFactor = 4 / denominator;
-  var quarterNotesPerBar = numerator * scaleFactor;
-  return quarterNotesPerBar;
-}
-
+// removes 'entry' from 'collection' if it exists and returns the modified Array
 function removeFromCollection(entry, collection) {
   var idx = collection.indexOf(entry);
   if(idx !== -1) {
@@ -36,15 +29,23 @@ function removeFromCollection(entry, collection) {
   return collection;
 }
 
+/*
+* helper functions
+*/
+
+// used to determine the number of quarter-notes per bar based on time signature, WORKING
+function calculateQuarterNotesPerBar(numerator, denominator) {
+  var scaleFactor = 4 / denominator;
+  return numerator * scaleFactor;
+}
+
+// used to return the first instance of NoteOff for a given NoteOn event, WORKING
 function getCorrespondingNoteOff(noteOn, noteOffEvents) {
-  var noteOff = null;
-  noteOffEvents.forEach(function(trackEvent) {
-    if(trackEvent.getEvent().getNote() === noteOn.getEvent().getNote() && noteOff === null) {
-      noteOff = trackEvent;
-      return;
+  for(let ev of noteOffEvents) {
+    if(ev.getEvent().getNote() === noteOn.getEvent().getNote()) {
+      return ev;
     }
-  })
-  return noteOff;
+  }
 }
 
 // returns the number of measures in a MIDI track given the 'trackLength' in midi pulses, pulses per quarter note, and time signatures
@@ -88,22 +89,36 @@ function parseFormatZero(midifile) {
   console.log('ticksPerQNote', ticksPerQNote);
 
   var timeSignatures = track.getEventsByType(MetaEventModule.TimeSignature);
-  var timeSignatureMap = {};
-  timeSignatures.forEach(function(ts) {
+  var timeSignatureMap = new Map();
+  for(let ts of timeSignatures) {
+    timeSignatureMap.set(ts.getTimeStamp(), ts.getEvent());
+  };
+
+  /*timeSignatures.forEach(function(ts) {
     timeSignatureMap[ts.getTimeStamp()] = ts.getEvent();
-  });
+  });*/
 
   var keySignatures = track.getEventsByType(MetaEventModule.KeySignature);
-  var keySignatureMap = {};
+  var keySignatureMap = new Map();
+  for(let ks of keySignatures) {
+    keySignatureMap.set(ks.getTimeStamp(), ks.getEvent());
+  };
+
+  /*var keySignatureMap = {};
   keySignatures.forEach(function(ks) {
     keySignatureMap[ks.getTimeStamp()] = ks.getEvent();
-  });
+  });*/
 
   var tempos = track.getEventsByType(MetaEventModule.SetTempo);
-  var tempoMap = {};
-  tempos.forEach(function(t) {
-    tempoMap[t.getTimeStamp()] = t.getEvent();
-  });
+  var tempoMap = new Map();
+  for(let t of tempos) {
+    tempoMap.set(t.getTimeStamp(), t.getEvent());
+  };
+
+  /*tempos.forEach(function(t) {
+    tempoMap.set(t.getTimeStamp(), t.getEvent());
+    //tempoMap[t.getTimeStamp()] = t.getEvent();
+  });*/
 
   var trackLength = track.getTrackLengthInTicks();
   console.log('trackLength', trackLength);
@@ -129,8 +144,8 @@ function parseFormatZero(midifile) {
   })
   console.log('notes', notes);
 
-
-  //var score = new ScoreModule.SheetMusic(title, options, [track], timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures);
+  var staffInfo = new StaffModule.Template(instrument, notes);
+  var score = new ScoreModule.SheetMusic(title, options, [staffInfo], timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures);
   //console.log('score', score);
   //return score;
 }
@@ -168,6 +183,17 @@ module.exports = {
 
 
 /*
+// used to return the first instance of NoteOff for a given NoteOn event
+function getCorrespondingNoteOff(noteOn, noteOffEvents) {
+  var noteOff = null;
+  noteOffEvents.forEach(function(trackEvent) {
+    if(trackEvent.getEvent().getNote() === noteOn.getEvent().getNote() && noteOff === null) {
+      noteOff = trackEvent;
+      return;
+    }
+  })
+  return noteOff;
+}
 
 
 */

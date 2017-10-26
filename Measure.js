@@ -1,4 +1,6 @@
 
+const NoteModule = require('./Symbols/NoteSymbol.js');
+const RestModule = require('./Symbols/RestSymbol.js');
 
 class Measure {
 	constructor(id, starttime, endtime) {
@@ -8,65 +10,34 @@ class Measure {
 		this.starttime = starttime; // returns the start of the measure as a MIDI pulse timestamp
 		this.endtime = endtime; // returns the end of the measure as a MIDI pulse timestamp
 
-		this.symbolMap = {}; // used to map individual notes to their midi pulse timestamps
+		this.symbolMap = new Map(); // used to map individual notes to their midi pulse timestamps
 
 
 		// alternative implementation
 		//this.starttime = timeSignature.measure + id*timeSignature.measure; // returns the start of the measure as a MIDI pulse timestamp
 		//this.endtime = starttime + timeSignature.measure; // returns the end of the measure as a MIDI pulse timestamp
 
-		//this.drawableclef = drawableclef; //determines if clef should be drawn
-		//this.drawablekey = drawablekey; //determines if clef should be drawn
-		//this.drawabletime = drawabletime; //determines if clef should be drawn
-
 		// not needed, will be stored as a ClefMap by Staff and passed as argument when drawing
 		//this.clef = clef;
-		//this.clefSymbol = new ClefSymbol(clef, starttime);
-
 		//this.keySignature = keySignature;
-		//this.keySymbol = new KeySymbol();
-
 		//this.timeSignature = timeSignature;
-		//this.timeSymbol = new TimeSymbol();
 	}
 
-	//determines how long the measure needs to be drawn
-	getMeasureWidth() {
-		var measureWidth = 0;
-		for(var i = 0; i < symbolArray.length; i++) {
-			var symbol = symbolArray[i];
-			measureWidth += symbol.width;
-		}
-		return measureWidth;
+	/* SETTERS & GETTERS */
+
+	// returns 'starttime' attr
+	getStartTime() {
+		return this.starttime;
 	}
 
-	// adds Note to array so it can be drawn
-	addNoteSymbol(starttime, duration) {
-		var endtime = starttime + duration;
-		var self = this;
-
-		self.symbolMap.forEach(function(symbol, oldStarttime) {
-			if (symbol.instanceof === NoteSymbol || symbol.instanceof === RestSymbol) && (symbol.starttime >=
-				starttime && symbol.endtime < endtime) {
-					self.symbolMap.delete(oldStarttime);
-			}
-		})
-		this.symbolMap.set(starttime, new NoteSymbol(starttime, duration))
+	// returns 'endtime' attr
+	getEndTime() {
+		return this.endtime;
 	}
 
-	// adds Rest to array so it can be drawn
-	addRestSymbol(starttime, duration) {
-		var endtime = starttime + duration;
-		var self = this;
-
-		self.symbolMap.forEach(function(symbol, oldStarttime) {
-			if (symbol.typeof === NoteSymbol || RestSymbol) && (symbol.starttime >=
-				starttime && symbol.endtime < endtime) {
-					self.symbolMap.delete(oldStarttime);
-			}
-		})
-
-		self.symbolMap.set(starttime, new RestSymbol(starttime, duration));
+	// returns 'width' attr
+	getWidth() {
+		return this.width;
 	}
 
 	//used to change clef properties of this measure
@@ -82,6 +53,52 @@ class Measure {
 	//used to change keySig properties of this measure
 	setKeySignature(ks) {
 		this.keySignature = ks;
+	}
+
+	/* CLASS LOGIC */
+
+	// returns 'true' if the specified timestamp occurs within this measure
+	containsTimeStamp(timestamp) {
+		return timestamp >= this.getStartTime() && timestamp < this.getEndTime() ? true : false;
+	}
+
+	//determines how long the measure needs to be drawn
+	getMeasureWidth() {
+		var measureWidth = 0;
+		for(var i = 0; i < symbolArray.length; i++) {
+			var symbol = symbolArray[i];
+			measureWidth += symbol.getWidth();
+		}
+		return measureWidth;
+	}
+
+	// adds Note to array so it can be drawn
+	addNoteSymbol(starttime, duration) {
+		var endtime = starttime + duration;
+		var self = this;
+
+		/*self.symbolMap.forEach(function(symbol, oldStarttime) {
+			if (symbol typeof NoteModule.NoteSymbol || symbol typeof RestModule.RestSymbol) && (symbol.starttime >=
+				starttime && symbol.endtime < endtime) {
+					self.symbolMap.delete(oldStarttime);
+			}
+		})
+		this.symbolMap.set(starttime, new NoteSymbol(starttime, duration))*/
+	}
+
+	// adds Rest to array so it can be drawn
+	addRestSymbol(starttime, duration) {
+		var endtime = starttime + duration;
+		var self = this;
+
+		/*self.symbolMap.forEach(function(symbol, oldStarttime) {
+			if (symbol typeof NoteModule.NoteSymbol || symbol typeof RestModule.RestSymbol) && (symbol.starttime >=
+				starttime && symbol.endtime < endtime) {
+					self.symbolMap.delete(oldStarttime);
+			}
+		})
+
+		self.symbolMap.set(starttime, new RestSymbol(starttime, duration));*/
 	}
 
 	//draws the measure
@@ -123,11 +140,11 @@ class Measure {
 		var y = ytop;
 		var x = xstart;
     graphics.moveTo(xstart, ytop)
-    for (line = 1; line &lt;= 5; line++) {
+    /*for (line = 1; line &lt;= 5; line++) {
       graphics.lineTo(xstart + measureLength, y);
       y += lineWidth + lineSpace;
       graphics.moveTo(xstart, y);
-    }
+    }*/
     //xstart += measureLength;
 	}
 
@@ -136,5 +153,8 @@ class Measure {
 	  graphics.moveTo(xstart, ytop);
 	  graphics.lineTo(xstart, ystaff);
 	}
-
 }
+
+module.exports = {
+	Measure: Measure,
+};

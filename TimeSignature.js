@@ -14,6 +14,18 @@ class TimeSignature {
     this.measure = numerator * beat; // pulses per measure
   }
 
+  /* GETTERS AND SETTERS */
+
+  getMeasureLengthInPulses() {
+    return this.measure;
+  }
+
+  getQuarterNoteLengthInPulses() {
+    return this.quarternote;
+  }
+
+  /* CLASS LOGIC */
+
   /*
   * returns the measure the timestamp (in MIDI pulses) occurs in based on the current time signature
   */

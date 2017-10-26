@@ -1,6 +1,22 @@
-class Staff {
 
-	constructor(id, instrument, measureArray, controllerMap, track) {
+// used to pass relevant data to build Staffs
+class StaffTemplate {
+	constructor(instrument, notes) {
+		this.instrument = instrument;
+		this.notes = notes;
+	}
+
+	getInstrument() {
+		return this.instrument;
+	}
+
+	getNotes() {
+		return this.notes;
+	}
+}
+
+class Staff {
+	constructor(id, instrument, measureArray/*, controllerMap, track*/) {
 		//this.sheetMusic = context;
 
 		//this.ytop = ytop; //top of the staff aka y-axis starting point
@@ -8,10 +24,19 @@ class Staff {
 
 		this.id = id // starts at 0
 		this.instrument = instrument; // represents the MIDI instrument to use as a value between 0-127
-		this.controllerMap = controllerMap; // represents controller changes for this track... structured as {ctrlName: {timestamp1: ctrlValue1, timestamp2: ctrlValue2, etc}}
+		//this.controllerMap = controllerMap; // represents controller changes for this track... structured as {ctrlName: {timestamp1: ctrlValue1, timestamp2: ctrlValue2, etc}}
 		this.measureArray = measureArray; // represents the Measures of each staff
 
 		//this.track = track; // represents the MIDI track that can be constructed from the 'measureArray'
+	}
+
+	// returns the Measure that contains the provided timestamp
+	getMeasureFromTimeStamp(timestamp) {
+		for(let m of this.measureArray) {
+			if(m.containsTimeStamp(timestamp)) {
+				return m;
+			}
+		}
 	}
 
 	//draws the staff
@@ -48,3 +73,8 @@ class Staff {
 		});
 	}
 }
+
+module.exports = {
+	Staff: Staff,
+	Template: StaffTemplate,
+};

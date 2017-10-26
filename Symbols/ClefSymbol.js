@@ -36,10 +36,9 @@ class ClefSymbol {
 
 			stage.addChild(bassClef)
 		}
-
 	}
-
 }
 
-
-
+module.exports = {
+	ClefSymbol: ClefSymbol,
+}

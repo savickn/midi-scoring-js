@@ -1,7 +1,9 @@
 
+
+
 // renders the visual representation of the score (using MidiData object)
 class SheetMusic {
-	constructor(scoreTitle, /*composerName,*/ scoreOptions, tracks, /*midiHeader, midiTracks,*/ timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures) {
+	constructor(scoreTitle, /*composerName,*/ scoreOptions, staffInfo, /*midiHeader, midiTracks,*/ timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures) {
 		this.scoreTitle = scoreTitle;
 		//this.composer = composerName;
 		this.scoreOptions = scoreOptions;
@@ -9,21 +11,52 @@ class SheetMusic {
 		this.timeSignatureMap = timeSignatureMap; // represents the time signature changes in the song (as midi pulse timestamps)
 		this.keySignatureMap = keySignatureMap; // represents the key signature changes in the song (as midi pulse timestamps)
 		this.tempoMap = tempoMap; // represents the tempo changes in the song (as midi pulse timestamps)
+
 		this.numberOfMeasures = numberOfMeasures; // represents the totla number of measures in the song
 
-		this.staffArray = this.buildStaffs(tracks); // used to create Staffs from MIDI track chunks
+		this.staffArray = this.buildStaffs(staffInfo); //this.buildStaffs(tracks); // used to create Staffs from MIDI track chunks
 		//this.measureLengthsArray = this.buildMeasureLengthsArray(numberOfMeasures);
 
 		this.cursorMode = null; // can be 'WRITE' or 'SELECT'
 		this.activeDuration = null; //can be 'quarter-note', 'half-note', etc
 	}
 
-	buildStaffs(tracks) {
-		var staffArray = [];
-		tracks.forEach(function(tracks) {
+	getStaffById(id) {
+		for(let s of this.staffArray) {
+			if(s.getId() === id) {
+				return s;
+			}
+		}
+	}
 
-		})
-		return staffArray;
+	getCurrentTempo(timestamp) {
+
+	}
+
+	getCurrentKey(timestamp) {
+
+	}
+
+	getCurrentTimeSignature(timestamp) {
+
+	}
+
+	// used to build a single staff from a single track
+	buildStaff(track) {
+		var measures = [];
+		
+
+
+	}
+
+	// used to construct a Staff for each individual track
+	buildStaffs(tracks) {
+		var staffs = [];
+		for(let t of tracks) {
+			var s = this.buildStaff(t);
+			staffs.push(s);
+		}
+		return staffs;
 	}
 
 	//an array of longestMeasure lengths for each measure
