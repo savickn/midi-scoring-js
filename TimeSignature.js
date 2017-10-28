@@ -11,7 +11,7 @@ class TimeSignature {
     this.quarternote = quarternote || 96; // pulses per quarternote, default is 96
 
     this.beat = denominator === 2 ? quarternote * 2 : quarternote / (denominator/4); // pulses per beat
-    this.measure = numerator * beat; // pulses per measure
+    this.measure = numerator * this.beat; // pulses per measure
   }
 
   /* GETTERS AND SETTERS */
@@ -63,9 +63,8 @@ class TimeSignature {
     		return "SixtyFourth";
   }
 
-  /** used to select which stem to render based on note duration
-   */
-  get stemDuration(noteValue) {
+  /** used to select which stem to render based on note duration **/
+  getStemDuration(noteValue) {
     if (noteValue == "DottedHalf")
         return "Half";
     else if (noteValue == "DottedQuarter")
@@ -76,7 +75,7 @@ class TimeSignature {
         return noteValue;
   }
 
-  /** Return the MIDI time period (in pulses) the the given duration spans */
+  /** Return the MIDI time period (in pulses) the given note spans **/
   convertNoteToMIDIDuration(noteValue) {
     var eighth = this.quarternote/2;
     var sixteenth = eighth/2;
@@ -95,6 +94,8 @@ class TimeSignature {
         default:                         return 0;
      }
   }
-
-
 }
+
+module.exports = {
+  TimeSignature: TimeSignature,
+};

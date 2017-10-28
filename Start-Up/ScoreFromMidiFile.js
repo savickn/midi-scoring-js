@@ -8,17 +8,19 @@ const MidiEventModule = require('../Midi/MidiEvent.js');
 const OptionsModule = require('../ScoreOptions.js');
 const ScoreModule = require('../SheetMusic.js');
 const NoteModule = require('../Symbols/NoteSymbol.js');
-const MeasureModule = require('../Staff.js');
-const StaffModule = require('../Measure.js');
-
+const StaffModule = require('../Staff.js');
+const MeasureModule = require('../Measure.js');
+const TimeSignatureModule = require('../TimeSignature.js');
+const KeySignatureModule = require('../KeySignature.js');
 
 /*
 * globals
 */
 
 //const defaultTempo;
-//const defaultKey;
-//const defaultClef;
+const defaultKeySignature = new KeySignatureModule.KeySignature('C', 0, 0);
+const defaultTimeSignature = new TimeSignatureModule.TimeSignature(4, 4, 96);
+const defaultClef = 'Treble';
 
 // removes 'entry' from 'collection' if it exists and returns the modified Array
 function removeFromCollection(entry, collection) {
@@ -32,6 +34,54 @@ function removeFromCollection(entry, collection) {
 /*
 * helper functions
 */
+
+// used to create a Staff that can be copied for all MIDI tracks (only need to add Notes/Rests + Clefs)
+function createMeasureArray(numberOfMeasures, ticksPerQNote, timeSignatureMap, keySignatureMap) {
+  var measures = [];
+
+  var tsBreakpoints = Array.from(timeSignatureMap.keys());
+  var ksBreakpoints = Array.from(keySignatureMap.keys());
+
+  var tsIdx = 0;
+  var ksIdx = 0;
+  var midiTime = 0;
+
+  var currentTsBreakpoint = tsBreakpoints[tsIdx];
+  var nextTsBreakpoint = tsBreakpoints[tsIdx + 1];
+
+  var currentKsBreakpoint = ksBreakpoints[ksIdx];
+  var nextKsBreakpoint = ksBreakpoints[ksIdx + 1];
+
+  var activeTimeSignature = timeSignatureMap.get(currentTsBreakpoint);
+  var timeSignature = activeTimeSignature ? new TimeSignatureModule.TimeSignature(activeTimeSignature.getNumerator(), activeTimeSignature.getDenominator(), ticksPerQNote) : defaultTimeSignature;
+  var activeKeySignature = keySignatureMap.get(currentKsBreakpoint);
+  var keySignature = activeKeySignature ? new KeySignatureModule.keySignature(activeKeySignature.getSharpsAndFlats(), activeKeySignature.getMajorMinor()) : defaultKeySignature;
+
+  for(let i = 1; i <= numberOfMeasures; i++) {
+    if(typeof nextTsBreakpoint != undefined && midiTime >= nextTsBreakpoint) {
+      currentTsBreakpoint = nextTsBreakpoint;
+      activeTimeSignature = timeSignatureMap.get(currentTsBreakpoint);
+      timeSignature = activeTimeSignature ? new TimeSignatureModule.TimeSignature(activeTimeSignature.getNumerator(), activeTimeSignature.getDenominator(), ticksPerQNote) : defaultTimeSignature;
+      tsIdx += 1;
+      nextTsBreakpoint = tsBreakpoints[tsIdx + 1];
+    }
+    if(typeof nextKsBreakpoint != undefined && midiTime >= nextKsBreakpoint) {
+      currentKsBreakpoint = nextKsBreakpoint;
+      activeKeySignature = keySignatureMap.get(currentKsBreakpoint);
+      keySignature = activeKeySignature ? new KeySignatureModule.keySignature(activeKeySignature.getSharpsAndFlats(), activeKeySignature.getMajorMinor()) : defaultKeySignature;
+      ksIdx += 1;
+      nextKsBreakpoint = ksBreakpoints[ksIdx + 1];
+    }
+    /*console.log('activeTimeSignature', activeTimeSignature);
+    console.log('timeSignature', timeSignature);
+    console.log('activeKeySignature', activeKeySignature);
+    console.log('keySignature', keySignature);*/
+
+    measures.push(new MeasureModule.Measure(i, midiTime, timeSignature, keySignature));
+    midiTime += timeSignature.getMeasureLengthInPulses();
+  }
+  return measures;
+}
 
 // used to determine the number of quarter-notes per bar based on time signature, WORKING
 function calculateQuarterNotesPerBar(numerator, denominator) {
@@ -48,15 +98,15 @@ function getCorrespondingNoteOff(noteOn, noteOffEvents) {
   }
 }
 
-// returns the number of measures in a MIDI track given the 'trackLength' in midi pulses, pulses per quarter note, and time signatures
+// returns the number of measures in a MIDI track given the 'trackLength' in midi pulses, pulses per quarter note, and time signatures, WORKING
 function calculateNumberOfMeasures(timeSignatureMap, trackLength, ticksPerQNote) {
-  var timeSignatureDTs = Object.keys(timeSignatureMap);
+  var timeSignatureDTs = Array.from(timeSignatureMap.keys());
   console.log('timeSignatureDTs', timeSignatureDTs);
   console.log('timeSignatureMap', timeSignatureMap);
 
-  var measures = 0;
+  var measureLength = 0;
   timeSignatureDTs.forEach(function(dt, idx) {
-    var activeTimeSignature = timeSignatureMap[dt];
+    var activeTimeSignature = timeSignatureMap.get(dt);
 
     if(idx === timeSignatureDTs.length - 1) {
       var endpoint = trackLength;
@@ -70,9 +120,9 @@ function calculateNumberOfMeasures(timeSignatureMap, trackLength, ticksPerQNote)
     console.log('quarterNotes', quarterNotes);
     var quarterNotesPerMeasure = calculateQuarterNotesPerBar(activeTimeSignature.getNumerator(), activeTimeSignature.getDenominator(), ticksPerQNote);
     console.log('qnotes per measure', quarterNotesPerMeasure);
-    measures += quarterNotes/quarterNotesPerMeasure;
+    measureLength += quarterNotes/quarterNotesPerMeasure;
   })
-  return measures;
+  return measureLength;
 }
 
 /*
@@ -127,6 +177,9 @@ function parseFormatZero(midifile) {
   var options = new OptionsModule.ScoreOptions();
   console.log('options', options);
 
+  var measureArray = createMeasureArray(numberOfMeasures, ticksPerQNote, timeSignatureMap, keySignatureMap);
+  console.log('measureArray', measureArray);
+
   // build Staff from track chunk
   var instruments = track.getEventsByType(MidiEventModule.ProgramChange);
   var instrument = instruments.length > 0 ? instruments[0].getInstrument() : 1; // defaults to Acoustic Grand Piano
@@ -142,10 +195,11 @@ function parseFormatZero(midifile) {
     notes.push(new NoteModule.NoteSymbol(starttime, duration, noteOnEvent.getEvent().getNote(), noteOnEvent.getEvent().getVelocity(), noteOffEvent.getEvent().getVelocity()))
     noteOffEvents = removeFromCollection(noteOffEvent, noteOffEvents);
   })
+  console.log('instrument', instrument);
   console.log('notes', notes);
 
-  var staffInfo = new StaffModule.Template(instrument, notes);
-  var score = new ScoreModule.SheetMusic(title, options, [staffInfo], timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures);
+  //var staffInfo = new StaffModule.StaffTemplate(instrument, notes);
+  //var score = new ScoreModule.SheetMusic(title, options, [staffInfo], timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures);
   //console.log('score', score);
   //return score;
 }

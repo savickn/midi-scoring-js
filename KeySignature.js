@@ -1,7 +1,12 @@
 
 
 class KeySignature {
-	constructor(key) {
-		this.key = key;
+	constructor(sharpsFlats, majorMinor) {
+		this.numberOfSharpsFlats = sharpsFlats;
+		this.majorMinor = majorMinor;
 	}
 }
+
+module.exports = {
+	KeySignature: KeySignature,
+};

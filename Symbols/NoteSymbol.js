@@ -6,10 +6,7 @@
 
 class NoteSymbol {
 	constructor(/*clef, keySig,*/ starttime, duration, note, velocityOn, velocityOff) {
-		//this.clef = clef; // used to determine where to place note on the staff
-		//this.keySig = keySig; // used to determine whether or not to also draw accidentals (also need to draw if previous note has a different accidental)
-
-		//this.width = getMinWidth();
+		//this.width = getMinWidth(); // used for drawing graphics
 
 		this.starttime = starttime; // as a midi pulse timestamp, used with 'duration' to create 'NoteOn' and 'NoteOff' MIDI events
 		this.duration = duration; // in midi pulses
@@ -19,13 +16,40 @@ class NoteSymbol {
 		this.velocityOff = velocityOff; // refers to MIDI velocity value between 0-127
 	}
 
+	/* GETTERS and SETTERS */
+
+	getStartTime() {
+		return this.starttime;
+	}
+
+	getDuration() {
+		return this.duration;
+	}
+
+	getNote() {
+		return this.note;
+	}
+
+	getVelocityOn() {
+		return this.velocityOn;
+	}
+
+	getVelocityOff() {
+		return this.velocityOff;
+	}
+
+	/* CLASS LOGIC */
+
+
+
+
+	/* GRAPHICS */
+
 	getMinWidth() {
 		return 2 * SheetMusic.NoteHeight + SheetMusic.NoteHeight/2;
 	}
 
   draw(canvas, paint, ytop) {
-
-
     /* Align the rest symbol to the right */
     canvas.translate(getWidth() - getMinWidth(), 0);
     canvas.translate(SheetMusic.noteHeight/2, 0);

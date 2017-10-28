@@ -1,9 +1,13 @@
 
-
+/*
+* There are two possible approaches:
+* 1) SheetMusic stores Map of Key/Clef/TimeSignatures and their TimeStamps
+* 2) Each measure has its own Key/Clef/TimeSignature
+*/
 
 // renders the visual representation of the score (using MidiData object)
 class SheetMusic {
-	constructor(scoreTitle, /*composerName,*/ scoreOptions, staffInfo, /*midiHeader, midiTracks,*/ timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures) {
+	constructor(scoreTitle, /*composerName,*/ scoreOptions, staffs, /*midiHeader, midiTracks,*/ timeSignatureMap, keySignatureMap, tempoMap, numberOfMeasures) {
 		this.scoreTitle = scoreTitle;
 		//this.composer = composerName;
 		this.scoreOptions = scoreOptions;
@@ -14,7 +18,7 @@ class SheetMusic {
 
 		this.numberOfMeasures = numberOfMeasures; // represents the totla number of measures in the song
 
-		this.staffArray = this.buildStaffs(staffInfo); //this.buildStaffs(tracks); // used to create Staffs from MIDI track chunks
+		this.staffArray = staffs; //this.buildStaffs(tracks); // used to create Staffs from MIDI track chunks
 		//this.measureLengthsArray = this.buildMeasureLengthsArray(numberOfMeasures);
 
 		this.cursorMode = null; // can be 'WRITE' or 'SELECT'
@@ -41,23 +45,6 @@ class SheetMusic {
 
 	}
 
-	// used to build a single staff from a single track
-	buildStaff(track) {
-		var measures = [];
-		
-
-
-	}
-
-	// used to construct a Staff for each individual track
-	buildStaffs(tracks) {
-		var staffs = [];
-		for(let t of tracks) {
-			var s = this.buildStaff(t);
-			staffs.push(s);
-		}
-		return staffs;
-	}
 
 	//an array of longestMeasure lengths for each measure
 	buildMeasureLengthsArray (numberOfMeasures) {
@@ -96,3 +83,33 @@ class SheetMusic {
 module.exports = {
 	'SheetMusic': SheetMusic,
 }
+
+
+
+
+// used to build a single staff from a single track
+/*buildStaff(track, id) {
+	var instrument = track.getInstrument();
+	var measures = [];
+
+	var runtime = 0;
+	var timeSigValues = this.timeSignatureMap.values();
+	var timeSigBreakpoints = this.timeSignatureMap.keys();
+
+	var activeTimeSignature = timeSigIter.next().value;
+
+	for(let i = 1; i <= this.numberOfMeasures; i++) {
+
+	}
+}
+
+// used to construct a Staff for each individual track
+buildStaffs(tracks) {
+	var staffs = [];
+	for(let t of tracks) {
+		var idx = tracks.indexOf(t) + 1;
+		var s = this.buildStaff(t, idx);
+		staffs.push(s);
+	}
+	return staffs;
+}*/

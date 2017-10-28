@@ -2,16 +2,19 @@
 const NoteModule = require('./Symbols/NoteSymbol.js');
 const RestModule = require('./Symbols/RestSymbol.js');
 
+// represents a single measure in a musical score
 class Measure {
-	constructor(id, starttime, endtime) {
+	constructor(id, starttime, timeSignature, keySignature) {
 		this.id = id; // starts at 0 for simplicity
-		this.width = getMeasureWidth(); //width in pixels based on symbols in symbolArra
+		this.width = this.getMeasureWidth(); //width in pixels based on symbols in symbolArra
 
-		this.starttime = starttime; // returns the start of the measure as a MIDI pulse timestamp
-		this.endtime = endtime; // returns the end of the measure as a MIDI pulse timestamp
+		this.starttime = starttime; // stores the start of the measure as a MIDI pulse timestamp
+		this.endtime = starttime + timeSignature.getMeasureLengthInPulses(); // stores the end of the measure as a MIDI pulse timestamp
 
-		this.symbolMap = new Map(); // used to map individual notes to their midi pulse timestamps
+		this.symbolMap = new Map([]); // used to map individual notes to their midi pulse timestamps
 
+		//this.voice1 = new Map([]); // used to replace symbolMap
+		//this.voice2
 
 		// alternative implementation
 		//this.starttime = timeSignature.measure + id*timeSignature.measure; // returns the start of the measure as a MIDI pulse timestamp
@@ -19,38 +22,32 @@ class Measure {
 
 		// not needed, will be stored as a ClefMap by Staff and passed as argument when drawing
 		//this.clef = clef;
-		//this.keySignature = keySignature;
-		//this.timeSignature = timeSignature;
+		this.keySignature = keySignature;
+		this.timeSignature = timeSignature;
 	}
 
 	/* SETTERS & GETTERS */
 
-	// returns 'starttime' attr
 	getStartTime() {
 		return this.starttime;
 	}
 
-	// returns 'endtime' attr
 	getEndTime() {
 		return this.endtime;
 	}
 
-	// returns 'width' attr
 	getWidth() {
 		return this.width;
 	}
 
-	//used to change clef properties of this measure
 	setClef(clef) {
 		this.clef = clef;
 	}
 
-	//used to change timeSig properties of this measure
 	setTimeSignature(ts) {
 		this.timeSignature = ts;
 	}
 
-	//used to change keySig properties of this measure
 	setKeySignature(ks) {
 		this.keySignature = ks;
 	}
@@ -62,20 +59,35 @@ class Measure {
 		return timestamp >= this.getStartTime() && timestamp < this.getEndTime() ? true : false;
 	}
 
-	//determines how long the measure needs to be drawn
-	getMeasureWidth() {
-		var measureWidth = 0;
-		for(var i = 0; i < symbolArray.length; i++) {
-			var symbol = symbolArray[i];
-			measureWidth += symbol.getWidth();
-		}
-		return measureWidth;
-	}
-
 	// adds Note to array so it can be drawn
-	addNoteSymbol(starttime, duration) {
+	// must check for Rests, existing notes of the same duration (create chord),
+	// existing notes of greater duration (delete and fill appropriately)
+	addNote(note) {
+		var starttime = note.getStartTime();
+		var duration = note.getDuration();
 		var endtime = starttime + duration;
-		var self = this;
+		var existingNote = this.symbolMap.get(starttime);
+
+		if(typeof existingNote != undefined) {
+			if(typeof existingNote === RestModule.RestSymbol) {
+				// Delete Rest
+				// Add note
+				// Fill remaining space with Rests
+			} else {
+
+			}
+
+
+			if(duration === existingNote.getDuration()) {
+				this.symbolMap.
+			}
+
+
+		} else {
+			this.symbolMap.set(starttime, [new NoteModule.NoteSymbol(starttime, duration)]);
+		}
+
+
 
 		/*self.symbolMap.forEach(function(symbol, oldStarttime) {
 			if (symbol typeof NoteModule.NoteSymbol || symbol typeof RestModule.RestSymbol) && (symbol.starttime >=
@@ -87,9 +99,12 @@ class Measure {
 	}
 
 	// adds Rest to array so it can be drawn
-	addRestSymbol(starttime, duration) {
+	addRest(rest) {
+		var starttime = note.getStartTime();
+		var duration = note.getDuration();
 		var endtime = starttime + duration;
-		var self = this;
+
+		this.symbolMap.set(starttime, [new NoteModule.NoteSymbol(starttime, duration)]);
 
 		/*self.symbolMap.forEach(function(symbol, oldStarttime) {
 			if (symbol typeof NoteModule.NoteSymbol || symbol typeof RestModule.RestSymbol) && (symbol.starttime >=
@@ -99,6 +114,62 @@ class Measure {
 		})
 
 		self.symbolMap.set(starttime, new RestSymbol(starttime, duration));*/
+	}
+
+	// used to remove individual NoteSymbols from symbolArray
+	removeNote(starttime) {
+		
+	}
+
+	// helper method for fillWithRests and fillWithNotes
+	divideDuration(duration) {
+		var remainingDuration = duration;
+		var noteDurations = [];
+		while(remainingDuration > 0) {
+			var subnote = this.timeSignature.convertMIDIDurationToNote(remainingDuration);
+			var subnoteDuration = this.timeSignature.convertNoteToMIDIDuration(subnote);
+			console.log('subnote', subnote);
+			remainingDuration -= subnoteDuration;
+			console.log('remainingDuration', remainingDuration);
+			noteDurations.push(subnoteDuration);
+		};
+	}
+
+	// adds Rests until the Measure is completely filled
+	fillWithRests(starttime, duration) {
+		var restDurations = this.divideDuration(duration)
+		var runningStartTime = starttime;
+
+		for(let restDuration of restDurations) {
+			this.symbolMap.set(runningStartTime, new RestModule.RestSymbol(runningStartTime, noteDuration));
+			runningStartTime += restDuration;
+		};
+	}
+
+	// used when a shorter duration note replaces a longer duration note to fill the excess space, UNTESTED
+	fillWithNotes(note, starttime, duration) {
+		var key = note.getNote();
+		var velocityOn = note.getVelocityOn();
+		var velocityOff = note.getVelocityOff();
+
+		var noteDurations = this.divideDuration(duration);
+		var runningStartTime = starttime;
+
+		for(let noteDuration of noteDurations) {
+			this.symbolMap.set(runningStartTime, new NoteModule.NoteSymbol(runningStartTime, noteDuration, key, velocityOn, velocityOff));
+			runningStartTime += noteDuration;
+		};
+	}
+
+	/* GRAPHICS */
+
+	//determines how long the measure needs to be drawn
+	getMeasureWidth() {
+		var measureWidth = 0;
+		/*for(let [time, symbol] of this.symbolMap) {
+			measureWidth += symbol.getWidth();
+		}*/
+		return measureWidth;
 	}
 
 	//draws the measure
